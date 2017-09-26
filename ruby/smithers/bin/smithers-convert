@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+$:.push File.expand_path('../../lib', __FILE__)
+
+require 'chef/data_bags/reader'
+require 'xmlsimple'
+require 'httparty'
+
+data_bag_reader = Chef::DataBag::Reader.new("#{$WORKSPACE_SETTINGS[:ecosystem][:paths][:ruby][:home]}/smithers")
+credentials = data_bag_reader.data_bag_item('resources', 'user')
+
+url = ARGV[0]
+
+response = HTTParty.get(
+  "#{url}/config.xml", 
+  :basic_auth => {
+    :username => credentials[:username],
+    :password => credentials[:password]
+  }
+)
+
+job_config_as_xml = response.body
+
+job_config = XmlSimple.xml_in(job_config_as_xml, {
+  'ForceArray' => false, 'AttrPrefix' => true
+})
+
+puts job_config.pretty_inspect

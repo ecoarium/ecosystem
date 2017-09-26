@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+require 'xmlsimple'
+
+content = ''
+
+if ARGF.filename != "-" or (not STDIN.tty? and not STDIN.closed?)
+  content = ARGF.read
+else
+  content = File.read(ARGV[0])
+end
+
+xml_hash = XmlSimple.xml_in(content, {
+  'ForceArray' => false, 'AttrPrefix' => true
+})
+
+puts xml_hash.pretty_inspect

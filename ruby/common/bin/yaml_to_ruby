@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+require 'yaml'
+
+content = ''
+
+if ARGF.filename != "-" or (not STDIN.tty? and not STDIN.closed?)
+  content = ARGF.read
+else
+  content = File.read(ARGV[0])
+end
+
+puts YAML.load(content).pretty_inspect

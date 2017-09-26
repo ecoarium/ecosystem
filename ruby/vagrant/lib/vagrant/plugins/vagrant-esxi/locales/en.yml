@@ -1,0 +1,26 @@
+en:
+  vagrant_esxi:
+    unregistering: |-
+      Unregistering VM...
+    removing: |-
+      Removing VM...
+    powering_off: |-
+      Powering off VM...
+    powering_on: |-
+      Powering on VM...
+    waiting_for_ssh: |-
+      Waiting for SSH...
+    copying: |-
+      Copying base box...
+    creating: |-
+      Creating VM...
+    registering: |-
+      Registering VM...
+    vm_already_created: |-
+      VM already created.
+    vm_not_created: |-
+      VM not created.
+    vm_not_running: |-
+      VM not running.
+    rsync_directory: |-
+      Rsyncing directory: %{hostpath} => %{guestpath}

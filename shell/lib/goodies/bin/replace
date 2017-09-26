@@ -1,0 +1,368 @@
+#!/usr/bin/env ruby
+
+require 'mixlib/cli'
+require 'fileutils'
+require 'tempfile'
+require 'pp'
+
+module Log
+
+  YELLOW="\e[33m"
+  PURPLE="\e[1;35m"
+  BLUE="\e[34m"
+  GREEN="\e[32m"
+  RED="\e[31m"
+  CLEAR="\e[0m"
+
+  def warn(message)
+    puts "#{YELLOW}#{message}#{CLEAR}"
+  end
+
+  def debug(message)
+    return if !debug_on
+    puts "#{BLUE}#{message}#{CLEAR}"
+  end
+
+  def good(message)
+    puts "#{GREEN}#{message}#{CLEAR}"
+  end
+
+  def attention(message)
+    puts "#{PURPLE}#{message}#{CLEAR}"
+  end
+
+  def error(message)
+    $stderr.puts "#{RED}#{message}#{CLEAR}"
+  end
+
+  def fail_with_message(message)
+    error message
+    exit -1
+  end
+end
+
+class Replace
+  include Log
+
+  attr_reader :location, :substitutions, :exclusions, :dry_run
+  attr_reader :just_file_content, :just_path_names, :debug_on
+
+  def initialize(opts={})
+    opts.each{|opt_name, opt_value|
+      instance_variable_set("@#{opt_name}".to_sym, opt_value) 
+    }
+
+    @exclusions = [] if @exclusions.nil?
+    @exclusions = @exclusions.collect{|pattern|
+      Regexp.new(pattern)
+    }
+
+    substitutions.each{|key,value|
+      substitutions[key] = '' if value.nil?
+    }
+  end
+
+  def run
+    good "
+
+############################################################################################
+
+                      This is a dry run, no changes will be applied.
+
+############################################################################################" if dry_run
+
+    if File.directory? location
+      if just_path_names and !just_file_content
+        warn "
+replacing path names with in directory tree: #{location}"
+        rename_paths(location, substitutions)
+      elsif just_file_content and !just_path_names
+        warn "
+replacing file contents with in directory tree: #{location}"
+        replace_in_files(location, substitutions)
+      else
+        warn "
+replacing path names and file contents with in directory tree: #{location}"
+        rename_paths(location, substitutions)
+        replace_in_files(location, substitutions)
+      end
+    else
+      if exclude?(location)
+        fail_with_message "
+the single file directed to replace contents within is also excluded!"
+      end
+      warn "
+replacing file contents in file: #{location}"
+      replace_in_file(location, substitutions)
+    end
+
+    puts ""
+  end
+
+  def exclude?(path)
+    exclusions.any?{|regex|
+      regex.match(path)
+    }
+  end
+
+  def rename_paths(location, substitutions)
+    Dir.chdir(location) do
+      substitutions.each{ |token,value|
+        glob = "**/*#{Regexp.escape(token)}*"
+        showen = false
+        #while Dir.glob(glob).size != 0
+        Dir.glob(glob) do |partial_source_path|
+          unless showen
+            warn "
+replacing token #{token} with value #{value} in paths:"
+            showen = true
+          end
+          #partial_source_path = Dir.glob(glob).first
+
+          source_path = File.expand_path(partial_source_path, location)
+
+          next unless File.exist? source_path
+
+          target_path = File.expand_path(partial_source_path.gsub(/#{Regexp.escape(token)}/, value), location)
+          begin
+            if exclude?(source_path)
+              attention "    excluding: #{source_path}"
+              next
+            end
+            warn "    #{source_path}"
+
+            next if dry_run
+
+            FileUtils.move(source_path, target_path)  
+          rescue Exception => e
+            fail_with_message %/
+  error moving file:
+    source: #{source_path}
+    target: #{target_path}
+
+#{e.message}
+#{e.backtrace.join("\n")}
+/
+          end
+        end
+      }
+    end
+  end
+
+  def get_matching_file_list(location, token, value)
+    grep_command_line = "GLOBIGNORE=.:..; egrep -Irn #{token} . 2>/dev/null | grep -v '\\.git\/'"
+
+    grep_output = nil
+    Dir.chdir(location) do
+      debug "
+executing: [#{grep_command_line}] in: [#{location}]
+"
+      grep_output = `#{grep_command_line}`
+    end
+
+    fail_with_message "grep failed" if $?.exitstatus != 0 and !grep_output.empty?
+
+    warn "
+replacing token #{token} with value #{value} in files:"
+
+    seen = []
+    already_excluded = []
+
+    grep_output.split("\n").collect{|grep_line|
+      path = File.expand_path(grep_line.split(':')[0], location)
+      
+      keep = !exclude?(path)
+
+      unless seen.include?(path)
+        seen << path
+
+        if !keep
+          attention "
+    excluding: #{path}"
+        elsif dry_run
+          puts ""
+        end
+      end
+
+      if keep and dry_run
+        good "    dry run: #{grep_line}"
+      end
+
+      path = nil if !keep
+      path
+    }.uniq.compact
+  end
+
+  def search_file_replace(file_path, regex, replace)
+    exp = Regexp.new(regex)
+
+    temp_file = Tempfile.new(File.basename(file_path))
+    
+    File.readlines(file_path).each do |line|
+      #debug "#{line}.match(#{exp.inspect})"
+      if line.match(exp)
+        debug "
+
+temp_file.write #{line}.gsub!(#{exp}, #{replace})
+
+from:
+#{line}
+
+to:
+#{line.gsub(exp, replace)}
+
+"
+        temp_file.write line.gsub!(exp, replace)
+      else
+        temp_file.write line
+      end
+    end
+
+    temp_file.close
+    FileUtils.move(temp_file, file_path, force: true) unless dry_run
+    temp_file.unlink
+  end
+
+  def replace_in_file(file, substitutions)
+    substitutions.each{ |token,value|
+      begin
+        search_file_replace(file, token, value)
+      rescue Exception => e
+        error %/
+      error on search and replace
+      token:  #{token}
+      value:  #{value}
+      file:   #{file}
+      
+      #{e.message}
+      #{e.backtrace.join("\n        ")}
+/
+      end
+    }
+  end
+
+  def replace_in_files(location, substitutions)
+    substitutions.each{ |token,value|
+      get_matching_file_list(location, token, value).each do |file|
+        warn "    #{file}"
+        replace_in_file(file, {token => value})
+      end
+    }
+  end
+end
+
+class CommandOptions
+  class << self
+
+    @instance
+    def instance=(value)
+      @instance = value
+    end
+
+    def instance
+      @instance
+    end
+
+    def location_handler
+      Proc.new {|location|
+        as_passed_location = location
+        location = File.expand_path(location, Dir.pwd)
+        unless File.exist?(location)
+          puts CommandOptions.instance.opt_parser
+          CommandOptions.fail_with_message "location passed '#{as_passed_location}' does not exist as it expands to: [#{location}]."
+        end
+        location
+      }
+    end
+
+  end
+
+  include Mixlib::CLI
+  extend Log
+
+  SEPARATOR='=:='
+
+  attr_reader :substitutions, :exclusions
+
+  def initialize(*args)
+    super()
+    self.class.instance = self
+  end
+
+  option :location,
+    :short => "-l PATH",
+    :long  => "--location PATH",
+    :description => "This is the location to perform the search and replace.",
+    :default => Dir.pwd,
+    :proc => CommandOptions.location_handler
+
+  option :exclusions,
+    :short => "-x PATH",
+    :long  => "--exclusions PATH",
+    :required => false,
+    :description => "This is an exclusion, as a regex, to the files and directories to which the search and replace will be executed.",
+    :proc => Proc.new {|path|
+      @exclusions = [] if @exclusions.nil?
+      @exclusions << path
+      @exclusions
+    }
+
+  option :substitutions,
+    :short => "-t TOKEN#{SEPARATOR}VALUE",
+    :long  => "--token TOKEN#{SEPARATOR}VALUE",
+    :required => true,
+    :description => "This is a take value pair delimited by '#{SEPARATOR}' (e.g. [token]#{SEPARATOR}[value]).",
+    :proc => Proc.new {|pair|
+      unless pair.include?(SEPARATOR)
+        puts CommandOptions.instance.opt_parser
+        CommandOptions.fail_with_message "-t|--token option value: '#{pair}' does not contain the separator #{SEPARATOR}"
+      end
+      token, value = pair.split(SEPARATOR)
+      @substitutions = {} if @substitutions.nil?
+      @substitutions[token] = value
+      @substitutions
+    }
+
+  option :just_file_content,
+    :short => "-f",
+    :long  => "--just-files",
+    :description => "This option limits the search and replace to file contents."
+
+  option :just_path_names, 
+    :short => "-p",
+    :long  => "--just-paths",
+    :description => "This option limits the search and replace to path names."
+
+  option :dry_run,
+    :short => "-y",
+    :long  => "--dry-run",
+    :description => "Prints what would be changed if run without this option."
+
+  option :debug_on, 
+    :short => "-d",
+    :long  => "--debug",
+    :description => "debug logging"
+
+  option :help,
+    :short => "-h",
+    :long => "--help",
+    :description => "Replace options",
+    :on => :tail,
+    :show_options => true,
+    :exit => 0
+end
+
+cli = CommandOptions.new
+nonopts = cli.parse_options
+
+if nonopts.empty?
+  Replace.new(cli.config).run
+else
+  nonopts.collect{|location|
+    CommandOptions.location_handler.call(location)
+  }.each{|location|
+    cli.config[:location] = location
+    Replace.new(cli.config).run
+  }
+end
+

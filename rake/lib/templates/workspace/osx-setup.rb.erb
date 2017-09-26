@@ -1,0 +1,269 @@
+#!/usr/bin/env ruby
+
+def cltools_required_version
+  if RbConfig::CONFIG['build_os'].start_with?('darwin14')
+    return '7.1.0'
+  elsif RbConfig::CONFIG['build_os'].start_with?('darwin15')
+    return '7.1.0'
+  elsif RbConfig::CONFIG['build_os'].start_with?('darwin16')
+    return '8.1.0'
+  else
+    raise "this version of osx is not supported #{RbConfig::CONFIG['build_os']}"
+  end
+end
+
+require 'rbconfig'
+require 'fileutils'
+require 'digest/md5'
+
+def shell_output(command)
+  puts "running command [#{command}]"
+  `#{command}`
+end
+
+def shell_output?(command)
+  shell_output(command)
+  $?.exitstatus == 0
+end
+
+def shell_output!(command)
+  output = shell_output(command)
+  raise "error code [#{$?.exitstatus}] executing:
+[#{command}]
+
+output:
+((((((((( BEGIN OUTPUT )))))))))
+#{output}
+(((((((((( END OUTPUT ))))))))))
+" unless $?.exitstatus == 0
+
+  output
+end
+
+def getc
+  system "/bin/stty raw -echo"
+  if STDIN.respond_to?(:getbyte)
+    STDIN.getbyte
+  else
+    STDIN.getc
+  end
+ensure
+  system "/bin/stty -raw echo"
+end
+
+def wait_for_user
+  puts
+  puts "Press RETURN to continue or any other key to abort"
+  c = getc
+  # we test for \r and \n because some stuff does \r instead
+  abort unless c == 13 or c == 10
+end
+
+
+def validate_running_on_osx
+  raise "
+this script only supports osx
+" unless RbConfig::CONFIG['build_os'].include?('darwin')
+end
+validate_running_on_osx
+
+
+def validate_not_running_as_root
+  raise "
+this installation script must be run as you, not as root.
+don't sudo...
+" if ENV['USER'] == 'root'
+end
+validate_not_running_as_root
+
+
+def validate_user_shell_is_bash
+  command = "dscl . -read /Users/#{ENV['USER']} UserShell"
+  output = shell_output!(command)
+
+  current_shell = output.split(/\s+/)[1]
+
+  if current_shell != '/bin/bash'
+    puts "
+your default shell needs to be /bin/bash.
+this script will now change your shell like so:
+
+sudo dscl . -change /Users/#{ENV['USER']} UserShell #{current_shell} /bin/bash
+
+"
+
+    wait_for_user
+
+    shell_output! "sudo dscl . -change /Users/#{ENV['USER']} UserShell #{current_shell} /bin/bash"
+  end
+end
+validate_user_shell_is_bash
+
+
+def validate_root_shell_is_bash
+  command = "sudo dscl . -read /Users/root UserShell"
+  output = shell_output!(command)
+
+  current_shell = output.split(/\s+/)[1]
+
+  if current_shell != '/bin/bash'
+    puts "
+root's default shell needs to be /bin/bash.
+this script will now change your shell like so:
+
+sudo dscl . -change /Users/root UserShell #{current_shell} /bin/bash
+
+"
+
+    wait_for_user
+
+    shell_output! "sudo dscl . -change /Users/root UserShell #{current_shell} /bin/bash"
+  end
+end
+validate_root_shell_is_bash
+
+
+def validate_current_shell_is_bash
+  raise "
+please run this script from a terminal configured to use bash as the default shell not the current shell #{ENV['SHELL']}
+" unless ENV['SHELL'] == '/bin/bash'
+end
+validate_current_shell_is_bash
+
+
+def validate_rvm_is_not_loaded
+  raise "
+rvm is active, you must remove it from your profile
+" if `type rvm 2>&1`.match(/rvm\s+is\s+a\s+function/)
+end
+validate_rvm_is_not_loaded
+
+
+def validate_there_is_no_bash_profile_etc
+  bash_adulterers = [
+    '.bash_profile',
+    '.bashrc',
+    '.bash_logout',
+    '.inputrc'
+  ].select{|bash_adulterer|
+    File.exist?("#{ENV['HOME']}/#{bash_adulterer}") and !File.readlines("#{ENV['HOME']}/#{bash_adulterer}").empty?
+  }
+
+  raise "
+you may not have a bash profile or other files that will manipulate bash.
+please remove these files:
+  * #{bash_adulterers.join("\n  * ")}
+" unless bash_adulterers.empty?
+end
+validate_there_is_no_bash_profile_etc
+
+
+def validate_automatic_updates_are_turned_off
+  software_update_plist = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
+  command = "sudo plutil -convert xml1 #{software_update_plist}"
+
+  raise "
+automatic updates are turned on. please turn off automatic updates to proceed.
+" unless shell_output?(command)
+
+  output = shell_output!(command)
+
+  command = "sudo /usr/libexec/PlistBuddy -c 'print :AutomaticCheckEnabled' #{software_update_plist} 2>&1 | grep -q true"
+
+  raise "
+automatic updates are turned on. please turn off automatic updates to proceed.
+" if shell_output?(command)
+end
+validate_automatic_updates_are_turned_off
+
+def cltools_installed?
+  developer_dir = shell_output("/usr/bin/xcode-select -print-path 2>/dev/null")
+
+  return false if developer_dir.nil?
+  developer_dir.chomp!
+  return false unless File.exist?(developer_dir)
+
+  return false unless File.exist?("#{developer_dir}/usr/bin/git")
+
+  return true
+end
+
+def ensure_clt_installed
+  unless cltools_installed?
+    puts "installing command line tools version #{cltools_required_version}"
+
+    osx_version = nil
+    if RbConfig::CONFIG['build_os'].start_with?('darwin14')
+      osx_version = '10'
+    elsif RbConfig::CONFIG['build_os'].start_with?('darwin15')
+      osx_version = '11'
+    elsif RbConfig::CONFIG['build_os'].start_with?('darwin16')
+      osx_version = '12'
+    else
+      raise "this version of osx is not supported #{RbConfig::CONFIG['build_os']}"
+    end
+
+    url = "<%= $WORKSPACE_SETTINGS[:nexus][:direct_base_path] %><%= $WORKSPACE_SETTINGS[:nexus][:repos][:file], %>/com/apple/10/#{osx_version}/xcode/clt/#{cltools_required_version}/clt-#{cltools_required_version}.dmg"
+    destination_file_path = "/tmp/#{File.basename(url)}"
+    mount_path = "/tmp/#{File.basename(destination_file_path, '.*')}"
+
+    if !File.exist?(destination_file_path) or Digest::MD5.file(destination_file_path).hexdigest != shell_output!("curl -k -L '#{url}.md5' 2>/dev/null").chomp
+      FileUtils.rm_f destination_file_path if File.exist?(destination_file_path)
+      puts shell_output!("curl -m 86400 -C - -o #{destination_file_path} -k -L --retry 5 '#{url}'")
+    end
+
+    begin
+      puts shell_output!("hdiutil attach '#{destination_file_path}' -mountpoint '#{mount_path}'")
+
+      puts shell_output!(%^sudo installer -package "$(find '#{mount_path}' -name *.pkg)" -target "/"^)
+    ensure
+      puts shell_output!("hdiutil detach '#{mount_path}'")
+    end
+  end
+end
+ensure_clt_installed
+
+
+def ensure_workspace_path_exists
+  unless File.exist?("#{ENV['HOME']}/<%= short_workspace_path %>")
+    FileUtils.mkdir_p "#{ENV['HOME']}/<%= short_workspace_path %>"
+  end
+end
+ensure_workspace_path_exists
+
+
+def clone_repo?(project_home_path)
+  if File.exist?(project_home_path)
+    Dir.chdir(project_home_path){
+      unless shell_output?("git branch 2>/dev/null 1>/dev/null")
+        return true
+      end
+    }
+  else
+    return true
+  end
+
+  return false
+end
+
+def ensure_git_repo_cloned_and_on_next
+  workspace_path = "#{ENV['HOME']}/<%= short_workspace_path %>"
+  project_home_path = "#{ENV['HOME']}/<%= short_project_paths_home %>"
+
+  Dir.chdir(workspace_path){
+    puts shell_output!("git clone '<%= project_git_repo_url %>'") if clone_repo?(project_home_path)
+
+    Dir.chdir(project_home_path){
+      if shell_output?("git branch 2>/dev/null | grep -q '\\* master'")
+        shell_output!("git checkout <%= branch_name %>")
+      elsif !shell_output?("git branch 2>/dev/null | grep -q '\\* <%= branch_name %>'")
+        raise "you already have the source pulled and are on a branch other than master or <%= branch_name %>"
+      end
+    }
+  }
+end
+ensure_git_repo_cloned_and_on_next
+
+Dir.chdir("#{ENV['HOME']}/<%= short_project_paths_home %>")
+
+Kernel.exec("bash --init-file '#{ENV['HOME']}/<%= short_project_paths_home %>/.ecosystem'")

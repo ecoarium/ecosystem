@@ -1,0 +1,1 @@
+require 'patch/ruby/rubygems/format'

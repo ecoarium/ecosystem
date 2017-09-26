@@ -1,0 +1,36 @@
+
+def unapplyForParentProject() {
+  project.configurations.each { Configuration configuration -> 
+    def jarArtifact = configuration.artifacts.find { 
+      it.file == jar.archivePath 
+    } 
+    if (jarArtifact != null) { 
+      configuration.artifacts.remove(jarArtifact)  
+    } 
+  }
+
+  [
+    project.assemble,
+    project.test,
+    project.jar,
+    project.coverageXmlReport,
+    project.coverageCheck,
+    project.coverageReport,
+    project.coverageBless,
+    project.build
+  ].each {
+    it.setDependsOn([])
+  }
+
+  project.assemble { actions = []; doLast {} }
+  project.check { actions = []; doLast {} }
+  project.build { actions = []; doLast {} }
+  project.jar { actions = []; doLast {} }
+  project.test { actions = []; doLast {} }
+  project.coverageXmlReport { actions = []; doLast {} }
+  project.coverageCheck { actions = []; doLast {} }
+  project.coverageReport { actions = []; doLast {} }
+  project.coverageBless { actions = []; doLast {} }
+}
+
+unapplyForParentProject()

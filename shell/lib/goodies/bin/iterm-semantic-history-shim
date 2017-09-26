@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+#export delimiter="123549514620727835944"
+#export delimiter="-"
+export delimiter="0010111000"
+
+function control_output() {
+  if [[ -z "$LOG_FILE" ]]; then
+    export LOG_FILE="${TMPDIR}/iterm-semantic-history-shim/log.txt" #/dev/null
+  fi
+
+  if [[ ! "$LOG_FILE" =~ ^/dev ]]; then
+    if [[ ! -e $(dirname "$LOG_FILE") ]]; then
+      mkdir -p "$(dirname "$LOG_FILE")"
+    fi
+
+    if [[ -e "$LOG_FILE" ]]; then
+      rm -f "$LOG_FILE"
+    fi
+  fi
+
+  if [[ "$LOG_FILE" != "/dev/stdout" ]]; then
+    exec 1<&-
+    # Close STDERR FD
+    exec 2<&-
+
+    # Open STDOUT as $LOG_FILE file for read and write.
+    exec 1<>"$LOG_FILE"
+
+    # Redirect STDERR to STDOUT
+    exec 2>&1
+  fi
+}
+
+__DIR__="$(dirname "`readlink ${BASH_SOURCE[0]}`")"
+
+function split_line_and_column() {
+  local original_arg=$1
+  local return_arg=$1
+
+  if [[ "$original_arg" =~ ^(.*)\:([[:digit:]]+)$delimiter([[:digit:]]+) ]]; then
+    return_arg="${BASH_REMATCH[1]}:${BASH_REMATCH[2]}:${BASH_REMATCH[3]}"
+  else
+    >&2 echo "failed to split
+original_arg:    $original_arg
+delimiter:       $delimiter
+
+BASH_REMATCH[0]: ${BASH_REMATCH[0]}
+BASH_REMATCH[1]: ${BASH_REMATCH[1]}
+BASH_REMATCH[2]: ${BASH_REMATCH[2]}
+BASH_REMATCH[3]: ${BASH_REMATCH[3]}
+"
+  fi
+
+  echo $return_arg
+}
+
+export -f split_line_and_column
+export ITERM_EDITOR=/usr/local/bin/atom
+if [[ ! -e "${ITERM_EDITOR}" ]]; then
+  export ITERM_EDITOR=/usr/local/bin/subl
+fi
+
+function open_in_editor() {
+  local arg="$(split_line_and_column $1)"
+  >&2 echo "${ITERM_EDITOR} ${arg}"
+  "${ITERM_EDITOR}" "${arg}"
+}
+
+control_output
+echo "called with: ${*}"
+open_in_editor $1

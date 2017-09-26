@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require 'pp'
+require 'json'
+
+if ARGV.empty?
+  puts JSON.pretty_generate(JSON.parse(ARGF.read))
+else
+  puts JSON.pretty_generate(JSON.parse(File.read(ARGV[0])))
+end

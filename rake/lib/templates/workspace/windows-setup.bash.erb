@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+function ensure_wget_installed(){
+  if ! which wget ; then
+    pacman -S --noconfirm wget
+  fi
+}
+ensure_wget_installed
+
+function ensure_unzip_installed(){
+  if ! which unzip ; then
+    pacman -S --noconfirm unzip
+  fi
+}
+ensure_unzip_installed
+
+function ensure_workspace_path_exists(){
+  local workspace_path="${HOME}/<%= short_workspace_path %>"
+  if [[ ! -e "${workspace_path}" ]]; then
+    mkdir -p "${workspace_path}"
+  fi
+}
+ensure_workspace_path_exists
+
+function ensure_git_credential_helper_set(){
+  if [[ -z "$(git config --global --get credential.helper)" ]]; then
+    git config --global credential.helper wincred
+  fi
+}
+ensure_git_credential_helper_set
+
+function ensure_git_repo_cloned_and_on_next(){
+  local original_cwd="$(pwd)"
+  local workspace_path="${HOME}/<%= short_workspace_path %>"
+  local project_home_path="${HOME}/<%= short_project_paths_home %>"
+  local branch_name='<%= branch_name %>'
+
+  cd "${project_home_path}"
+  if ! git branch 2>/dev/null 1>/dev/null ; then
+    cd "${workspace_path}"
+    git clone '<%= project_git_repo_url %>'
+  fi
+
+  cd "${project_home_path}"
+    if git branch 2>/dev/null | grep -q '\\* master' ; then
+      git checkout "$branch_name"
+    elif ! git branch 2>/dev/null | grep -q "\\* $branch_name" ; then
+      >&2 echo "you already have the source pulled and are on a branch other than master or $branch_name"
+      kill -s INT $$
+    fi
+
+  cd "${original_cwd}"
+}
+ensure_git_repo_cloned_and_on_next
+
+function ensure_rbenv_installed(){
+  local ruby_version=2.2.4
+
+  if [[ $(which ruby) && $(ruby -v | grep -q $ruby_version) ]]; then
+    return 0
+  fi
+
+  if [[ ! -e '/usr/local/rbenv' ]]; then
+    git clone git://github.com/sstephenson/rbenv.git /usr/local/rbenv
+  fi
+
+  if [[ ! -e '/usr/local/ruby-install' ]]; then
+    git clone https://github.com/eocarium/windows-ruby-install.git /usr/local/ruby-install
+  fi
+
+  if [[ ! -e '/etc/profile.d/rbenv.sh' ]]; then
+    # Add rbenv to the path:
+    echo '# rbenv setup' > /etc/profile.d/rbenv.sh
+    echo 'export PATH="/usr/local/rbenv/libexec:$PATH"' >> /etc/profile.d/rbenv.sh
+    echo 'export PATH="/usr/local/ruby-install/bin:$PATH"' >> /etc/profile.d/rbenv.sh
+    echo 'eval "$(rbenv init - )"' >> /etc/profile.d/rbenv.sh
+
+    chmod +x /etc/profile.d/rbenv.sh
+  fi
+
+  if [[ ! $(which rbenv) || ! $(which ruby-install) ]]; then
+    source /etc/profile.d/rbenv.sh
+  fi
+
+  rbenv install $ruby_version
+  rbenv global $ruby_version
+  rbenv rehash
+}
+ensure_rbenv_installed
+
+cd "${HOME}/<%= short_project_paths_home %>"
+bash --init-file "${HOME}/<%= short_project_paths_home %>/.ecosystem"

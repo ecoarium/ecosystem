@@ -1,0 +1,23 @@
+apply plugin: 'java'
+
+ext.set('nexusUsername', System.getenv()['NEXUS_USER_NAME']?: 'unknown')
+ext.set('nexusPassword', System.getenv()['NEXUS_PASSWORD']?: 'unknown')
+ext.set('nexusUrl', System.getenv()['NEXUS_URL']?: 'unknown')
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      repository(url: "${nexusUrl}/content/repositories/releases") {
+        authentication(userName: nexusUsername, password: nexusPassword)
+      }
+      pom.version = version
+    }
+  }
+  doLast {
+    def nexus_credential = nexusUsername + ':' + nexusPassword
+    def group = System.getenv()['GROUP_ID_BASE'] + '.' + branchName
+    def update_url = nexusUrl + "/service/local/metadata/repositories/releases/content/" + group.replaceAll("\\.", "/") + "/" + System.getenv()['PROJECT_NAME']
+
+    ['curl', '-v', '--request', 'DELETE', '--user', nexus_credential, '--silent', update_url].execute()
+  }
+}

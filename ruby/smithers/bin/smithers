@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+$:.push File.expand_path('../../lib', __FILE__)
+
+require 'smithers'
+
+cli_options = Smithers::CommandOptions.new
+nonopts = cli_options.parse_options
+
+if nonopts.empty?
+  Smithers::SmithersFile.new(cli_options.config).run
+else
+  raise "extra arguments were passed: #{nonopts.join(', ')}"
+end
+

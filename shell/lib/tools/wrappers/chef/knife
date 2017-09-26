@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+export AUTO_BOOTSTRAP=false
+source "$(dirname ${BASH_SOURCE[0]})/../../../control/bootstrap.bash"
+
+require 'wrappers/bundle'
+
+bundle 'install' '--local'
+
+cd "${ECOSYSTEM_CHEF_HOME}"
+
+export KNIFE_BIN="$(gem_bin_path 'chef' 'knife')"
+"${KNIFE_BIN}" $* -c "${ECOSYSTEM_CHEF_HOME}/knife.rb"
+chef_exit_code=$?
+
+cd $OLDPWD
+
+exit $chef_exit_code

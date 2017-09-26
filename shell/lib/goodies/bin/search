@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+export delimiter="0010111000"
+
+export extra=''
+
+while [[ true ]]; do
+  export item=$1
+  shift;
+
+  if [[ "$item" =~ ^-.* ]]; then
+    export extra="$extra $item"
+  else
+    export search_term=$item
+    break;
+  fi
+done
+
+search_location="${*}"
+
+if [[ -z "${search_location}" ]]; then
+  search_location='.'  
+fi
+
+for search_item in $search_location ; do
+  search_item="$(absolute_path $search_item)"
+  GLOBIGNORE=.:..; egrep -Irn $extra "$search_term" "$search_item" | grep -v '/.git/' | awk -F':' '{print $1 ":" $2 ENVIRON["delimiter"] index(substr($0, index($0,$3)), ENVIRON["search_term"]) ":" substr($0, index($0,$3))}'
+done

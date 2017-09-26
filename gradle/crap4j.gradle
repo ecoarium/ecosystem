@@ -1,0 +1,56 @@
+
+configurations{
+  crap4jRuntime
+}
+
+dependencies {
+  crap4jRuntime ('dom4j:dom4j:1.6.1') {transitive=false}
+  crap4jRuntime ('org.apache.commons:commons-math:2.1')  {transitive=false}
+  crap4jRuntime "asmlib:asmlib:1.5.0_13"
+  crap4jRuntime "crapertura:crapertura:1.0.0.20100927"
+  crap4jRuntime "org.crap4j:crap4j:1.1.5"
+}
+
+task overviewCoverageReport() {
+  doLast {
+    def coverageTempSource = "${project.buildDir}/tmp/coverage/source"
+    (new File(coverageTempSource)).mkdirs()
+    allprojects.each { proj ->
+      copy{
+        from proj.sourceSets.main.java
+        into coverageTempSource
+      }
+    }
+
+    ant.taskdef(resource:'tasks.properties', classpath: configurations.coberturaRuntime.asPath)
+    
+    ant.'cobertura-merge'(datafile: "${project.buildDir}/coverage.ser"){
+      fileset(
+        dir: projectDir,
+        includes:"**/.build/cobertura.ser"
+      )
+    }
+
+    ant.'cobertura-report'(destdir: "${reporting.baseDir}/coverage", format: 'xml', srcdir: coverageTempSource, datafile: "${project.buildDir}/coverage.ser")
+    ant.'cobertura-report'(destdir: "${reporting.baseDir}/coverage", format: 'html', srcdir: coverageTempSource, datafile: "${project.buildDir}/coverage.ser")
+  }
+}
+
+
+task crap4jReport(dependsOn: overviewCoverageReport) {
+  doLast {
+    def coverageTempClasses = "${project.buildDir}/tmp/coverage/classes"
+    (new File(coverageTempClasses)).mkdirs()
+    allprojects.each { proj ->
+      copy{
+        from proj.sourceSets.main.output.classesDir
+        into coverageTempClasses
+      }
+    }
+
+    ant.taskdef(name:'crapertura', classname: 'com.schneide.crapertura.ant.CraperturaTask', classpath: configurations.crap4jRuntime.asPath)
+
+    ant.'crapertura'(coberturaReportFile: "${reporting.baseDir}/coverage/coverage.xml", targetDirectory: "${reporting.baseDir}/crap4j", classesDirectory: coverageTempClasses, generateHTMLReport: false)
+    ant.'crapertura'(coberturaReportFile: "${reporting.baseDir}/coverage/coverage.xml", targetDirectory: "${reporting.baseDir}/crap4j", classesDirectory: coverageTempClasses)
+  }
+}
