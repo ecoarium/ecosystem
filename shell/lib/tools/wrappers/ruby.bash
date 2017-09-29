@@ -47,8 +47,10 @@ function ruby__add_ecosystem_gems_to_path() {
 ruby__add_ecosystem_gems_to_path
 
 function ruby__add_workspace_gems_to_path() {
-  for dir in $(find "${PATHS_PROJECT_WORKSPACE_SETTINGS_RUBY_HOME}" -name bin -type d) ; do
-    export PATH="$dir:$PATH"
-  done
+	if [[ -e "${PATHS_PROJECT_WORKSPACE_SETTINGS_RUBY_HOME}" ]]; then
+	  for dir in $(find "${PATHS_PROJECT_WORKSPACE_SETTINGS_RUBY_HOME}" -name bin -type d) ; do
+	    export PATH="$dir:$PATH"
+	  done
+	fi
 }
 ruby__add_workspace_gems_to_path

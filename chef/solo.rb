@@ -12,6 +12,7 @@ def address_issues_where_ohai_is_slow()
 end
 
 def disable_ohai_plugins_with_missing_dependencies
+  Ohai::Config[:disabled_plugins] = [] if Ohai::Config[:disabled_plugins].nil?
   Ohai::Config[:disabled_plugins].push(*[
     :Network,
     :NetworkRoutes,

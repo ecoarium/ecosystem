@@ -33,30 +33,30 @@ function sudo__execute_with_administrator_privileges_f() {
 }
 
 if [[ "$(uname -s)" =~ MSYS ]]; then
-function sudo(){
-  local command="$@"
-  
-  if [[ "$command" =~ -E ]]; then
-    command=''
-  fi
+  function sudo(){
+    local command="$@"
 
-  if [[ -z "$command" && ! -t 0 ]]; then
-    local IFS=
-    local data=''
-    while read data ; do
-      command="$command
+    if [[ "$command" =~ -E ]]; then
+      command=''
+    fi
+
+    if [[ -z "$command" && ! -t 0 ]]; then
+      local IFS=
+      local data=''
+      while read data ; do
+        command="$command
 $data"
-    done
-  fi
+      done
+    fi
 
-  command="
+    command="
 export SUDO_USER=$USER
 $command"
 #read -p 'Press [Enter] key to exit...'"
 
-  debug "$command"
-  # maybe use: https://sourceforge.net/p/manufacture/wiki/syswin-su/
-  #cygstart -v -w --action=runas bash --login -i -c "\"$command"\"
-  eval "$command"
-}
+    debug "$command"
+    # maybe use: https://sourceforge.net/p/manufacture/wiki/syswin-su/
+    #cygstart -v -w --action=runas bash --login -i -c "\"$command"\"
+    eval "$command"
+  }
 fi

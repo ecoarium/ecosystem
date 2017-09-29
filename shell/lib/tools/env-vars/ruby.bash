@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export RUBY_VERSION=2.2.4
+export RUBY_VERSION="${RUBY_VERSION:=2.2.4}"
 export RUBY_TYPE_NAME="rbenv"
 
 export GEM_HOME="${PATHS_ORGANIZATION_HOME}/.gem-${RUBY_TYPE_NAME}-${RUBY_VERSION}"
