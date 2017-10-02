@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-export ATOM_BIN=/usr/local/bin/atom
+export ATOM_BIN=$HOME/AppData/Local/atom/bin/atom

@@ -56,10 +56,3 @@ function atom_open() {
 function atom_project() {
   atom_open -a "${PATHS_PROJECT_HOME}"
 }
-
-function atom_add_to_path() {
-  if [[ "$(uname -s)" =~ MSYS ]]; then
-    export PATH=$HOME/AppData/Local/atom/bin:$PATH
-  fi
-}
-atom_add_to_path

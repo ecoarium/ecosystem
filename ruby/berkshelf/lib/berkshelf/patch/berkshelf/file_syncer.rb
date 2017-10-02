@@ -80,5 +80,9 @@ module Berkshelf
 
       true
     end
+
+    def relative_path_for(path, parent)
+      Pathname.new(path).relative_path_from(Pathname.new(parent)).to_s
+    end
   end
 end

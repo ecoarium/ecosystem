@@ -128,9 +128,9 @@ cookbook_path [
   berks_cookbooks_path
 ]
 
-file_cache_path "/var/chef/cache"
-file_backup_path "/var/chef/backup"
-role_path "/var/chef/roles"
+file_cache_path File.expand_path('/var/chef/cache')
+file_backup_path File.expand_path('/var/chef/backup')
+role_path File.expand_path('/var/chef/roles')
 
 FileUtils.mkdir_p file_cache_path unless File.exist? file_cache_path
 FileUtils.mkdir_p file_backup_path unless File.exist? file_backup_path
