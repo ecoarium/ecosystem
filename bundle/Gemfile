@@ -7,7 +7,7 @@ require_relative 'gem_package_dependencies'
 # gem 'rugged'
 
 gem_package_dependencies brew: ['libxml2', 'libxslt']
-gem 'nokogiri'#, '= 1.8.1'
+gem 'nokogiri'
 
 gem 'ru'
 gem 'awesome_print'
@@ -50,19 +50,19 @@ gem 'fog-core', '= 1.43.0'
 
 #################################### VAGRANT ############################################
 
-gem 'berkshelf',              '~> 6.3.1', {'type' => :development}
+gem 'berkshelf',              '~> 4.3.5', {'type' => :development}
 
 gem 'wdm',                    '0.1.1.1', {'type' => :development}
-# gem 'winrm',                  '~> 2.1', {'type' => :development}
-# gem 'winrm-fs',               '~> 1.0', {'type' => :development}
+gem 'winrm',                  '~> 1.6', {'type' => :development}
+gem 'winrm-fs',               '~> 0.3.0', {'type' => :development}
 
-gem 'vagrant',                '= 1.9.4', {'type' => :development}
+gem 'vagrant',                '= 1.8.4', {'type' => :development}
 
 #################################### CHEF ############################################
 
 
-gem 'chef',                   '= 13.4.24', {'type' => :development}
-# gem 'hashie', '= 3.4.6'
+gem 'chef',                   '= 12.9.38', {'type' => :development}
+gem 'hashie', '= 3.4.6'
 
 platforms :mingw do
   gem 'win32-api',      '~> 1.5.3', {'type' => :development}
