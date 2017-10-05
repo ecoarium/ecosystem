@@ -24,7 +24,6 @@ module Vagrant
             @access_key_id = Helper.get_aws_credential['aws_access_key_id']
             @secret_access_key = Helper.get_aws_credential['aws_secret_access_key']
             @region = 'us-east-1'
-            @subnet_id = 'subnet-a72ce7ef'
             @security_groups = ['ssh']
 
             @instance_type = 'm3.medium'
@@ -35,11 +34,16 @@ module Vagrant
             aws.access_key_id = access_key_id
             aws.secret_access_key = secret_access_key
 
+            aws.region = region
+            aws.availability_zone = availability_zone
+
+            Helper.region = region
+            Helper.availability_zone = availability_zone
+
             @keypair_name = Helper.ssh_key_name(vagrant_machine) if @keypair_name.nil?
 
             aws.keypair_name = keypair_name
-            aws.region = region
-            aws.availability_zone = availability_zone
+
             aws.ami = ami
             aws.subnet_id = subnet_id
             aws.security_groups = Helper.convert_security_group_names_to_ids(security_groups, subnet_id)

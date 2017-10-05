@@ -55,6 +55,11 @@ module VagrantPlugins
             synced_folders: machine.config.vm.synced_folders
           }
 
+          if machine.config.vm.communicator == :winrm
+            VagrantPlugins::CommunicatorWinRM::Helper.winrm_info(machine) unless machine.id.nil?
+            report[machine.name][:winrm_info] = machine.config.winrm.deep_to_hash
+          end
+
           provider_reporter_klass = project_machine.provider_class.to_s[/Vagrant::Project(.*)/, 1]
 
           machine.config.vm.instance_variable_get(:@__providers).keys.each{|providers|

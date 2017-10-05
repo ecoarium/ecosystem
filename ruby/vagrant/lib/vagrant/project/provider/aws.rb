@@ -20,13 +20,25 @@ module Vagrant
         def set_defaults(&block)
           super
 
+          provider_overrides{|override|
+            override.ssh.username = 'ec2-user'
+            override.ssh.private_key_path = Vagrant::Project::Provider::Amazon::Helper.ssh_key_file_path(vagrant_machine)
+          }
+
           if vagrant_machine.vm.guest == :windows
+            vagrant_machine.vm.communicator = 'winrm'
             vagrant_machine.winrm.username = 'Administrator'
-            vagrant_machine.winrm.password = Vagrant::Project::Provider::Amazon::Helper.windows_password(vagrant_machine)
-          else
-            provider_overrides{|override|
-              override.ssh.username = 'ec2-user'
-              override.ssh.private_key_path = Vagrant::Project::Provider::Amazon::Helper.ssh_key_file_path(vagrant_machine)
+            vagrant_machine.winrm.password = :aws
+            vagrant_machine.vm.allowed_synced_folder_types = [:winrm]
+
+
+            provider{|aws|
+              aws.user_data = <<-USERDATA
+  <powershell>
+    Enable-PSRemoting -Force
+    netsh advfirewall firewall add rule name="WinRM HTTP" dir=in localport=5985 protocol=TCP action=allow
+  </powershell>
+USERDATA
             }
           end
 

@@ -75,7 +75,7 @@ end
 
 desc "Dump Workspace Settings"
 task :dump_workspace_settings, :query_opt, :format_opt do |task, args|
-  format = :json
+  format = :inspect
   format = args.format_opt.to_sym unless args.format_opt.nil?
 
   dump = nil

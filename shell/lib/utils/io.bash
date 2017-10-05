@@ -21,9 +21,7 @@ function absolute_path()
   echo "$partial_path"
 }
 
-if [[ ! "$(uname -s)" =~ MSYS_NT* ]]; then
-  export -f absolute_path
-fi
+export -f absolute_path
 
 function __DIR__() {
   absolute_path "$(dirname ${BASH_SOURCE[1]})"

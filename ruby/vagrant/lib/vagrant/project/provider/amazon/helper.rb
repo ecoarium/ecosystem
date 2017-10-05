@@ -13,6 +13,31 @@ module Vagrant
 
           class << self
 
+            def region=(value)
+              @region = value
+            end
+            def region
+              @region
+            end
+
+            def availability_zone=(value)
+              @availability_zone = value
+            end
+            def availability_zone
+              @availability_zone
+            end
+
+            def aws_client
+              Fog::Compute.new(
+                {
+                  provider: :aws,
+                  aws_access_key_id: get_aws_credential['aws_access_key_id'],
+                  aws_secret_access_key: get_aws_credential['aws_secret_access_key'],
+                  region: region
+                }
+              )
+            end
+
             def provisioning?
               run_chef = %w{provision up --provision}
               unless ARGV.include?("up") && ARGV.include?("--no-provision")
@@ -57,7 +82,7 @@ module Vagrant
                 id = IO.read(vagrant_machine.id_file)
 
                 begin
-                  @instance[vagrant_machine.name] = Fog::Compute[:aws].servers.get(id)
+                  @instance[vagrant_machine.name] = aws_client.servers.get(id)
                 rescue  NoMethodError => err
                   File.delete(vagrant_machine.id_file)
                   raise %/
@@ -127,7 +152,7 @@ module Vagrant
                 end
 
                 if key.nil?
-                  key_pairs = Fog::Compute[:aws].key_pairs
+                  key_pairs = aws_client.key_pairs
                   key = key_pairs.find { |potential_key| keys.include? potential_key.name }
                   if key.nil?
                     key = create_ssh_key
@@ -146,8 +171,7 @@ module Vagrant
             end
 
             def windows_password(vagrant_machine)
-              aws = Fog::Compute[:aws]
-              response = aws.get_password_data(vagrant_machine.id)
+              response = aws_client.get_password_data(vagrant_machine.id)
               password_data = response.body['passwordData']
 
               if password_data
@@ -163,11 +187,13 @@ module Vagrant
             end
 
             def convert_security_group_names_to_ids(security_groups_names, subnet_id)
-              subnets = Fog::Compute[:aws].describe_subnets('subnet-id' => subnet_id)
-              subnet_vpc_id = subnets.body['subnetSet'].first['vpcId']
-              security_groups = Fog::Compute[:aws].describe_security_groups('vpc-id' => subnet_vpc_id)
+              debug{"convert_security_group_names_to_ids(#{security_groups_names.inspect}, #{subnet_id.inspect})"}
 
-              todo 'need to make sure that all security group names passed are found and if not we should raise and exception listing all the existing security group names', '04/20/2017 02:00 PM'
+              subnets = aws_client.describe_subnets('subnet-id' => subnet_id)
+              subnet_vpc_id = subnets.body['subnetSet'].first['vpcId']
+              security_groups = aws_client.describe_security_groups('vpc-id' => subnet_vpc_id)
+
+              todo 'need to make sure that all security group names passed are found and if not we should raise and exception listing all the existing security group names', '10/20/2017 02:00 PM'
               security_groups.body['securityGroupInfo'].collect{|security_group|
                 if security_groups_names.include?(security_group['groupName'])
                   security_group['groupId']
@@ -178,7 +204,7 @@ module Vagrant
             private
 
             def create_ssh_key
-              key = Fog::Compute[:aws].key_pairs.create(:name => "vagrantaws_#{Mac.addr.gsub(':', '').gsub('-', '')}")
+              key = aws_client.key_pairs.create(:name => "vagrantaws_#{Mac.addr.gsub(':', '').gsub('-', '')}")
               File.open(local_key_path(key.name), File::WRONLY | File::TRUNC | File::CREAT, 0600) { |f| f.write(key.private_key) }
               return key
             end

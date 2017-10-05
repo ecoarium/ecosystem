@@ -43,9 +43,10 @@ gem 'selenium-webdriver'
 group :plugins do
   gem 'vagrant-aws'
   gem 'vagrant-winrm'
+  gem 'vagrant-aws-winrm'
 end
 
-gem 'macaddr'
+gem 'macaddr', '= 1.8.7'
 gem 'fog-core', '= 1.43.0'
 
 #################################### VAGRANT ############################################

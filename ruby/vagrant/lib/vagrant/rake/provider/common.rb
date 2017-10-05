@@ -192,42 +192,7 @@ module Vagrant
 
         def rdp_machine(machine)
           if machine_state_exist?(machine)
-
-            config_path = Pathname.new(Dir.tmpdir).join("vagrant-rdp-#{Time.now.to_i}-#{rand(10000)}.rdp")
-            config_path.open('w+'){|file|
-              file.puts "screen mode id:i:1
-desktopwidth:i:1600
-desktopheight:i:900
-use multimon:i:0
-session bpp:i:24
-full address:s:127.0.0.1:3389
-audiomode:i:0
-username:s:localhost\\vagrant
-disable wallpaper:i:0
-disable full window drag:i:0
-disable menu anims:i:0
-disable themes:i:0
-alternate shell:s:
-shell working directory:s:
-authentication level:i:2
-connect to console:i:0
-gatewayusagemethod:i:0
-disable cursor setting:i:0
-allow font smoothing:i:1
-allow desktop composition:i:1
-redirectprinters:i:0
-prompt for credentials on client:i:1
-
-
-bookmarktype:i:3
-use redirection server name:i:0
-
-authoring tool:s:rdmac"
-            }
-
-            shell_command! "open '#{config_path.to_s}' &", quiet: true
-
-            shell_command! "osascript #{File.expand_path('apple-script/rdp.apple-script', File.dirname(__FILE__))}"
+            raw_vagrant_execution "rdp #{machine} &", quiet: true
           else
             raise "The #{machine} machine has not been created. Run deploy_#{machine} to create it."
           end
