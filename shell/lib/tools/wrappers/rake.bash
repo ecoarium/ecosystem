@@ -69,7 +69,7 @@ function _rake_complete(){
 
   local recent="$(ls -t1 ${rake_cache_task_cache_file} `cat ${rake_cache_file_list_cache_file}` 2>/dev/null | head -n 1)"
   if [[ $recent != "${rake_cache_task_cache_file}" ]]; then
-     rake --silent -T -A -sb false 2>/dev/null | cut -d " " -f 2 | sed -e 's/[a-z]*_opts//g;s/[a-z]*_opt//g;s/\[\]//g;s/,\]/]/g' | tail -r > "${rake_cache_task_cache_file}" 2>/dev/null
+     rake --silent -T -A -sb false 2>/dev/null | cut -d " " -f 2 | sed -e 's/[a-z]*_opts//g;s/[a-z]*_opt//g;s/\[\]//g;s/,\]/]/g' > "${rake_cache_task_cache_file}" 2>/dev/null
   fi
   COMPREPLY=($(compgen -W "`cat ${rake_cache_task_cache_file}`" -- ${COMP_WORDS[COMP_CWORD]}))
   return 0
