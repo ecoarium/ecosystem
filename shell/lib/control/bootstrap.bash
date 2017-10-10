@@ -16,6 +16,8 @@ require_relative 'base-variables'
 
 set_ecosystem_variables
 
+require 'os'
+
 set_base_project_workspace_variables
 source "$PATHS_PROJECT_WORKSPACE_SETTINGS_SHELL_HOME/set.env.bash"
 

@@ -6,6 +6,6 @@ export VAGRANT_I_KNOW_WHAT_IM_DOING_PLEASE_BE_QUIET=true
 
 export PATHS_ORGANIZATION_VAGRANT_HOME="${VAGRANT_HOME}"
 
-if [[ "$(uname -s)" =~ "MSYS*" ]]; then
-  export PATH=/c/Program\ Files/Oracle/VirtualBox:$PATH
+if [[ "$OS_NAME" == 'Windows' ]]; then
+  export PATH="/c/Program\ Files/Oracle/VirtualBox:$PATH"
 fi

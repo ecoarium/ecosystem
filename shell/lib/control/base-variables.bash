@@ -79,7 +79,7 @@ function set_base_project_workspace_variables() {
     fi
   fi
 
-  set_unless GIT_REPO_SERVER_NAME "github.${DOMAIN_NAME}"
+  set_unless GIT_REPO_SERVER_NAME "${DOMAIN_NAME}"
   set_unless GIT_REPO_BASE_URL "https://${GIT_REPO_SERVER_NAME}"
   set_unless GIT_REPO_URL "${GIT_REPO_BASE_URL}/${ORGANIZATION_NAME}/${PROJECT_NAME}.git"
 }

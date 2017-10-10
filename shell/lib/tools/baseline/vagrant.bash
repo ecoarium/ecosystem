@@ -7,7 +7,7 @@ function baseline__vagrant__up_to_date_q(){
 
   local vagrant_boxes_dir="${VAGRANT_HOME}/boxes"
   local vagant_shared_boxes_dir="${HOME}/.vagrant.d.boxes"
-  if [[ ! -e "${vagant_shared_boxes_dir}" || ! -e "${vagrant_boxes_dir}" || ! "$(uname -s)" =~ "MSYS*" && ! -d "${vagrant_boxes_dir}" ]]; then
+  if [[ ! -e "${vagant_shared_boxes_dir}" || ! -e "${vagrant_boxes_dir}" || ! -d "${vagrant_boxes_dir}" ]]; then
     set_baseline_up_to_date_override
 
     register_baseline_installer_function baseline__vagrant__install_vagrant
@@ -30,8 +30,6 @@ function baseline__vagrant__install_vagrant() {
     fail_if "failed to create directory: ${VAGRANT_HOME}"
   fi
 
-
-  local OS_NAME="$(uname -s)"
   case $OS_NAME in
     Darwin)
       ln -s -f "${vagant_shared_boxes_dir}/" "${vagrant_boxes_dir}"
@@ -39,8 +37,8 @@ function baseline__vagrant__install_vagrant() {
     Linux)
       ln -s -f "${vagant_shared_boxes_dir}/" "${vagrant_boxes_dir}"
       ;;
-    MSYS*)
-      cmd <<< "mklink /d \"${vagrant_boxes_dir}\" \"${vagant_shared_boxes_dir}/\""
+    Windows)
+      cmd <<< "mklink /D '${vagrant_boxes_dir}' '${vagant_shared_boxes_dir}'"
       ;;
     *)
       fail "unsupported OS: $OS_NAME"

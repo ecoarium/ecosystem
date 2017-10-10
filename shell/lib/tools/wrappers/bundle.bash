@@ -14,7 +14,6 @@ function bundle(){
   if [[ $bundle_command == "install" || $bundle_command == "package" || $bundle_command == "update" ]]; then
     if [[ "$BUNDLE_GEMFILE" -nt "$PATHS_PROJECT_BUNDLE_INSTALL_FLAG_FILE" || "$ECOSYSTEM_BUNDLE_GEMFILE" -nt "$PATHS_PROJECT_BUNDLE_INSTALL_FLAG_FILE" ]]; then
 
-      local OS_NAME="$(uname -s)"
       case $OS_NAME in
         Darwin)
           _bundle config build.nokogiri --with-xml2-include=/usr/local/Cellar/libxml2/2.9.4/include/libxml2/libxml --with-xml2-lib=/usr/local/Cellar/libxml2/2.9.4/lib --with-xslt-dir=/usr/local/Cellar/libxslt/1.1.28_1

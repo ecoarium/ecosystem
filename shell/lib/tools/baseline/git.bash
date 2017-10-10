@@ -13,7 +13,6 @@ function baseline__git__up_to_date_q(){
 }
 
 function baseline__git__configure_credential_helper() {
-  local OS_NAME="$(uname -s)"
   case $OS_NAME in
     Darwin)
       git config --global credential.helper osxkeychain
@@ -21,7 +20,7 @@ function baseline__git__configure_credential_helper() {
     Linux)
       git config --global credential.helper store
       ;;
-    MSYS*)
+    Windows)
       git fetch
       git config --global credential.helper wincred
       ;;

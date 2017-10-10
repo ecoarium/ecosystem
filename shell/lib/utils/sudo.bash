@@ -32,7 +32,7 @@ function sudo__execute_with_administrator_privileges_f() {
   fail_if "command failed: ${*}"
 }
 
-if [[ "$(uname -s)" =~ MSYS ]]; then
+if [[ "$OS_NAME" == 'Windows' ]]; then
   function sudo(){
     local command="$@"
 

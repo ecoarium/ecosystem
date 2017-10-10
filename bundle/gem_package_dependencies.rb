@@ -74,7 +74,29 @@ module GemPackageDependencies
     end
 
     def ensure_installed
-      raise 'not yet implemented'
+      if !installed?
+        install
+      elsif !package[:version].nil? and package[:version] != current_version
+        raise "the current version of #{package[:name]} is #{installed_version}, you requested version #{package[:version]}" if package[:version] != current_version
+        install
+      end
+    end
+
+    def install
+      output = `pacman -S --noconfirm #{package[:name]} 2>&1`
+      raise "failed to install #{package[:name]}:\n#{output}" unless $?.exitstatus == 0
+    end
+
+    def installed?
+      !current_version.nil?
+    end
+
+    def current_version
+      return @current_version unless @current_version.nil?
+
+      dump = `pacman -Q #{package[:name]} 2>&1`
+      raise "failed to find info on #{package[:name]}:\n#{dump}" unless $?.exitstatus == 0
+      @current_version = dump.chomp!.split(/\s+/)[1]
     end
   end
   class Brew

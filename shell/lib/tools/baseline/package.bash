@@ -5,7 +5,6 @@ function baseline__package__command() {
 }
 
 function baseline__package___set_package_manager() {
-  local OS_NAME="$(uname -s)"
   case $OS_NAME in
     Darwin)
       export BASELINE_PACKAGE_MANAGER=brew
@@ -20,7 +19,7 @@ function baseline__package___set_package_manager() {
         fail "unsupported OS: $OS_NAME, can't find package manager yum or apt"
       fi
       ;;
-    MSYS*)
+    Windows)
       export BASELINE_PACKAGE_MANAGER=pacman
       require 'baseline/package/pacman'
       ;;
