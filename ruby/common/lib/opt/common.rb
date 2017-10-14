@@ -10,6 +10,10 @@ Dir.glob("#{ENV['ECOSYSTEM_PATHS_RUBY_HOME']}/*/").each{|slack_gem|
   $:.unshift "#{slack_gem}lib"
 }
 
+Dir.glob("#{ENV['PATHS_PROJECT_WORKSPACE_SETTINGS_ORGANISMS_HOME']}/*/ruby/lib").each{|slack_gem|
+  $:.unshift slack_gem
+}
+
 Dir.glob("#{ENV['PATHS_PROJECT_WORKSPACE_SETTINGS_RUBY_HOME']}/*/").each {|slack_gem|
   $:.unshift "#{slack_gem}lib"
 }

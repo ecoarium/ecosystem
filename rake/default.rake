@@ -41,6 +41,10 @@ Dir.glob("#{$WORKSPACE_SETTINGS[:paths][:project][:workspace][:settings][:ruby][
   load rake_file
 }
 
+Dir.glob("#{$WORKSPACE_SETTINGS[:paths][:project][:workspace][:settings][:organisms][:home]}/*/rake/default.rake").each {|rake_file|
+  load rake_file
+}
+
 $:.push project_rake_classes_dir
 
 workspace_rake_file = "#{$WORKSPACE_SETTINGS[:paths][:project][:workspace][:settings][:rake][:home]}/default.rb"
