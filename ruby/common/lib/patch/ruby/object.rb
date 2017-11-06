@@ -182,12 +182,16 @@ Instance Variables:
 
     datetime = DateTime.strptime("#{datetime} -05:00", '%m/%d/%Y %I:%M %p %:z') if datetime.is_a?(String)
     datetime = datetime.to_datetime if datetime.is_a?(Date)
+    location = caller[0]
+    if caller[0].split(':')[2] == "in `todo'"
+      location = caller[1]
+    end
     fail %/
 
       Message:\t\t#{message}
       Detonate on:\t#{datetime}
       Now:\t\t#{DateTime.now}
-      Location:\t\t#{caller[0]}
+      Location:\t\t#{location}
     / if timebomb_armed && datetime < DateTime.now
 
     instance_exec(*args, &block) if block_given?
