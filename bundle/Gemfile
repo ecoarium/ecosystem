@@ -37,6 +37,9 @@ gem 'cucumber'
 gem 'rspec'
 gem 'selenium-webdriver'
 
+gem 'cfndsl'
+gem 'cfn2dsl'
+
 #################################### VAGRANT ############################################
 #                                Vagrant Plugins
 
@@ -44,6 +47,7 @@ group :plugins do
   gem 'vagrant-aws'
   gem 'vagrant-winrm'
   gem 'vagrant-aws-winrm'
+  gem 'vagrant-triggers'
 end
 
 gem 'macaddr', '= 1.8.7'
