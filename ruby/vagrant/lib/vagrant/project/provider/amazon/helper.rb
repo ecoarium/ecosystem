@@ -193,7 +193,7 @@ module Vagrant
               subnet_vpc_id = subnets.body['subnetSet'].first['vpcId']
               security_groups = aws_client.describe_security_groups('vpc-id' => subnet_vpc_id)
 
-              todo 'need to make sure that all security group names passed are found and if not we should raise and exception listing all the existing security group names', '10/20/2017 02:00 PM'
+              todo 'need to make sure that all security group names passed are found and if not we should raise and exception listing all the existing security group names', '11/20/2017 02:00 PM'
               security_groups.body['securityGroupInfo'].collect{|security_group|
                 if security_groups_names.include?(security_group['groupName'])
                   security_group['groupId']
