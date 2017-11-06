@@ -65,7 +65,7 @@ task :correct_rights do
   ssh = ssh_connection
   script = %^
 sudo su <<-'ENDCOMMANDS'
-  find /Users/vagrant -exec chown vagrant:vagrant '{}' \;
+  find /Users/vagrant -exec chown vagrant:vagrant '{}' \\;
 ENDCOMMANDS
   ^
   ssh.execute_script! script, sudo: false
