@@ -61,42 +61,44 @@ Class: #{self}
       location = "<location unknown>"
       method_argument_list = []
 
-      unless method_object.nil?
-        params = method_object.parameters
+      begin
+        unless method_object.nil?
+          params = method_object.parameters
 
-        unless params.empty?
-          method_argument_list = params.collect{|arg_info|
-            argument_display = ""
-            case arg_info[0]
-            when :req
-              argument_display = arg_info[1]
-            when :opt
-              argument_display = "#{arg_info[1]}=default"
-            when :rest
-              arg_name = arg_info[1]
-              arg_name = 'args' if arg_name.nil?
-              argument_display = "*#{arg_name}"
-            when :keyreq
-              argument_display = arg_info[1].inspect
-            when :key
-              argument_display = "#{arg_info[1].inspect}=default"
-            when :keyrest
-              arg_name = arg_info[1]
-              arg_name = 'named_args' if arg_name.nil?
-              argument_display = "**#{arg_name}"
-            when :block
-              arg_name = arg_info[1]
-              arg_name = 'block' if arg_name.nil?
-              argument_display = "&#{arg_info[1]}"
-            else
-              argument_display = "<unknown-arg-type?#{arg_info.inspect}?unknown-arg-type>"
-            end
+          unless params.empty?
+            method_argument_list = params.collect{|arg_info|
+              argument_display = ""
+              case arg_info[0]
+              when :req
+                argument_display = arg_info[1]
+              when :opt
+                argument_display = "#{arg_info[1]}=default"
+              when :rest
+                arg_name = arg_info[1]
+                arg_name = 'args' if arg_name.nil?
+                argument_display = "*#{arg_name}"
+              when :keyreq
+                argument_display = arg_info[1].inspect
+              when :key
+                argument_display = "#{arg_info[1].inspect}=default"
+              when :keyrest
+                arg_name = arg_info[1]
+                arg_name = 'named_args' if arg_name.nil?
+                argument_display = "**#{arg_name}"
+              when :block
+                arg_name = arg_info[1]
+                arg_name = 'block' if arg_name.nil?
+                argument_display = "&#{arg_info[1]}"
+              else
+                argument_display = "<unknown-arg-type?#{arg_info.inspect}?unknown-arg-type>"
+              end
 
-            argument_display
-          }
+              argument_display
+            }
+          end
+          location = method_object.source_location.join(":") unless method_object.source_location.nil?
         end
-
-        location = method_object.source_location.join(":") unless method_object.source_location.nil?
+      rescue Exception => e
       end
 
       "#{objects_method}(#{method_argument_list.join(", ")}) -- #{location}"
