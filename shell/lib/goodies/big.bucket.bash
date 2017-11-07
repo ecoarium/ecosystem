@@ -83,6 +83,10 @@ function open_cookbook() {
   open "$(cookbook_path ${*})"
 }
 
+function atom_cookbook() {
+  atom "$(cookbook_path ${*})"
+}
+
 function search_cookbook() {
   if [[ "${@: -1}" =~ ^[0-9]+ ]]; then
     local cookbook_version="${@: -1}"
@@ -111,6 +115,14 @@ function open_gem() {
   fi
 
   open "$(gem_path "$1")"
+}
+
+function atom_gem() {
+  if [[ -z "$1" ]]; then
+    fail "one argument is required: gem_name"
+  fi
+
+  atom "$(gem_path "$1")"
 }
 
 function search_gem() {
