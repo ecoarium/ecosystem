@@ -2,7 +2,7 @@
 
 function set_ecosystem_variables() {
   export TERM=xterm-256color
-  export DELIMITER='-.-'
+  export DELIMITER='-o-'
 
   local lib_directory_path=''
   for lib_directory_path in "${ECOSYSTEM_PATHS_SHELL_LIB_HOME}"/*/ ; do

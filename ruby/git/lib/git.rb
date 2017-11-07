@@ -7,6 +7,16 @@ class Git
 
   class << self
 
+		def user(dir=$WORKSPACE_SETTINGS[:paths][:project][:home])
+			process = shell_command! 'git config user.name', cwd: dir, live_stream: nil
+      process.stdout.strip
+		end
+
+		def user_email(dir=$WORKSPACE_SETTINGS[:paths][:project][:home])
+			process = shell_command! 'git config user.email', cwd: dir, live_stream: nil
+      process.stdout.strip
+		end
+
     def fetch_and_prune_remote_branches(dir=$WORKSPACE_SETTINGS[:paths][:project][:home])
       shell_command! 'git fetch -p', cwd: dir
     end

@@ -16,6 +16,8 @@ ENV['CREATE_MACHINE_REPORT'] = "#{create_machine_report.inspect}"
 
 $WORKSPACE_SETTINGS = {} if $WORKSPACE_SETTINGS.nil?
 
+$WORKSPACE_SETTINGS[:workspace_setting] = ENV['WORKSPACE_SETTING']
+
 $WORKSPACE_SETTINGS[:hats] = []
 
 unless ENV['HATS'].nil?

@@ -3,29 +3,35 @@ module CfndslExt
   class Tagging
     class << self
 
-    	def generate_tags(name:, expiration_hours: 24, persistent: false, extra_tags: nil)
-        project = ENV['PROJECT_NAME']
+      def generate_name(short_name=$WORKSPACE_SETTINGS[:workspace_setting])
+        jenkins_job = ENV['JOB_NAME']
+        unless jenkins_job.nil?
+          return [short_name, jenkins_job].join($WORKSPACE_SETTINGS[:delimiter])
+        end
 
-        slave = ENV['NODE_NAME'] || 'NOT_JENKINS'
+        [
+          short_name.gsub(/_/, '-'),
+          Git.user.gsub(/\s+/, '-'),
+          $WORKSPACE_SETTINGS[:project][:name],
+        ].join($WORKSPACE_SETTINGS[:delimiter])
+      end
+
+    	def generate_tags(short_name: $WORKSPACE_SETTINGS[:workspace_setting], extra_tags: nil)
+        node_name = ENV['NODE_NAME'] || 'NOT_JENKINS'
         jenkins_job = ENV['JOB_NAME'] || 'NOT_JENKINS'
-        user = (`git config user.name`).chomp!
-        user_email = (`git config user.email`).chomp!
 
         date_format = "%m/%d/%Y %H:%M:%S"
         date_modified = Time.new.getlocal.strftime(date_format)
-        expires = ( Time.new + 3600 * expiration_hours ).getlocal.strftime(date_format)
 
         tags = {
-          "Name" => "#{name}#{$WORKSPACE_SETTINGS[:delimiter]}#{jenkins_job}#{$WORKSPACE_SETTINGS[:delimiter]}#{date_modified}",
-          "name" => name,
+          "Name" => generate_name(short_name),
           "Jenkins_Job" => jenkins_job,
-          "Slave" => slave,
-          "Project" => project,
+          "Node_Name" => node_name,
+          "Project" => $WORKSPACE_SETTINGS[:project][:name],
           "Branch" => Git.branch_name,
-          "User" => user,
-          "User_Email" => user_email,
-          "Date_Modified" => date_modified,
-          "Expires" => expires,
+          "User" => Git.user,
+          "User_Email" => Git.user_email,
+          "Date_Modified" => date_modified
         }
 
         unless extra_tags.nil?
