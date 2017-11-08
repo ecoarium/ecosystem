@@ -21,7 +21,6 @@ module Vagrant
           super
 
           provider_overrides{|override|
-            override.ssh.username = 'ec2-user'
             override.ssh.private_key_path = Vagrant::Project::Provider::Amazon::Helper.ssh_key_file_path(vagrant_machine)
           }
 

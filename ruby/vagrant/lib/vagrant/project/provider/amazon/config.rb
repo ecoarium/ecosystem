@@ -11,7 +11,7 @@ module Vagrant
           include LoggingHelper::LogToTerminal
           include Vagrant::Project::Mixins::Tagging
 
-          attr_config :access_key_id, :secret_access_key, :keypair_name
+          attr_config :access_key_id, :secret_access_key, :keypair_name, :ssh_username
           attr_config :ami, :instance_type, :region, :subnet_id, :availability_zone, :tags
 
           attr_config :security_groups, is_array: true
@@ -24,13 +24,16 @@ module Vagrant
             @access_key_id = Helper.get_aws_credential['aws_access_key_id']
             @secret_access_key = Helper.get_aws_credential['aws_secret_access_key']
             @region = 'us-east-1'
-            @security_groups = ['ssh']
+            @security_groups = ['default', 'ssh']
+            @ssh_username = 'ec2-user'
 
             @instance_type = 'm3.medium'
             @tags = {}
           end
 
           def configure_this(vagrant_machine, aws)
+            vagrant_machine.ssh.username = ssh_username
+
             aws.access_key_id = access_key_id
             aws.secret_access_key = secret_access_key
 
