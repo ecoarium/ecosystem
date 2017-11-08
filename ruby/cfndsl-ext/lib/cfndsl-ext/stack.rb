@@ -93,9 +93,9 @@ module CfndslExt
         events = @stack.events.collect.to_a.reverse
 
         events[off_set..-1].each{|event|
-          puts "event_id: #{event.event_id}, logical_resource_id: #{event.logical_resource_id}, physical_resource_id: #{event.physical_resource_id}, resource_status: #{event.resource_status}, resource_status_reason: #{event.resource_status_reason}, resource_type: #{event.resource_type}"
+          puts "--)event_id: #{event.event_id}, logical_resource_id: #{event.logical_resource_id}, physical_resource_id: #{event.physical_resource_id}, resource_status: #{event.resource_status}, resource_status_reason: #{event.resource_status_reason}, resource_type: #{event.resource_type}"
         }
-        
+
         events.size
       end
 
@@ -111,7 +111,7 @@ module CfndslExt
         if stack.exists?
           query_stack.stack_status
         else
-          nil
+          'NONEXISTENT'
         end
       end
 
