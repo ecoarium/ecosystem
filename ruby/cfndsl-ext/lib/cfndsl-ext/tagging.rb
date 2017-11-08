@@ -16,7 +16,7 @@ module CfndslExt
         ].join($WORKSPACE_SETTINGS[:delimiter])
       end
 
-    	def generate_tags(short_name: $WORKSPACE_SETTINGS[:workspace_setting], extra_tags: nil)
+    	def generate_tags(extra_tags: nil)
         node_name = ENV['NODE_NAME'] || 'NOT_JENKINS'
         jenkins_job = ENV['JOB_NAME'] || 'NOT_JENKINS'
 
@@ -24,7 +24,6 @@ module CfndslExt
         date_modified = Time.new.getlocal.strftime(date_format)
 
         tags = {
-          "Name" => generate_name(short_name),
           "Jenkins_Job" => jenkins_job,
           "Node_Name" => node_name,
           "Project" => $WORKSPACE_SETTINGS[:project][:name],
