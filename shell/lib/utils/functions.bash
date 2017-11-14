@@ -12,8 +12,6 @@ function functions__exclude_from_export(){
 }
 
 function functions__export_functions() {
-  echo $(caller 1)
-  fail "here"
   functions__exclude_from_export 'function.export_functions' 'function.exclude_from_export'
 
   local IFS=
@@ -30,7 +28,7 @@ function functions__export_functions() {
   done  < "${tmp_file}"
 
   rm -f "${tmp_file}"
-  
+
   return 0
 }
 
@@ -51,11 +49,11 @@ function function__execute_if_exists() {
 
   if function__exist_q "$function_name" ; then
     eval "${*}"
-  fi 
+  fi
 }
 
 function function__copy() {
-  test -n "$(declare -f $1)" || return 
+  test -n "$(declare -f $1)" || return
   eval "${_/$1/$2}"
 }
 

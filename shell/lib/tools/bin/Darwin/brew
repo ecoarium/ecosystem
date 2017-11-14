@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+RUBYOPT=''  BUNDLE_BIN_PATH='' /usr/local/bin/brew "$@"

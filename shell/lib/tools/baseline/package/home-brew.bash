@@ -21,8 +21,3 @@ function baseline__home_brew__install_home_brew() {
 if [[ -n "$AUTO_BOOTSTRAP" && $AUTO_BOOTSTRAP == true ]]; then
   register_baseline_up_to_date_function baseline__home_brew__up_to_date_q
 fi
-
-function brew() {
-  local brew_bin=$(which brew)  
-  RUBYOPT=''  BUNDLE_BIN_PATH='' $brew_bin "$@"
-}

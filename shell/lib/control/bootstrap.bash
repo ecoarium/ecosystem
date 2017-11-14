@@ -75,6 +75,8 @@ function bootstrap() {
   assert_not_already_loaded
   function__execute_if_exists 'before_bootstrap'
 
+  functions__export_functions
+
   require_relative 'baseline'
 
   local auto_load_bash_source_file_path=''
@@ -84,6 +86,7 @@ function bootstrap() {
 
   bootstrap_workspace_settings
 
+  functions__export_functions
   rename_terminal
   complete_load
   function__execute_if_exists 'after_bootstrap'
@@ -92,6 +95,12 @@ function bootstrap() {
 function complete_load() {
   export PROJECT_LOADED=true
 }
+
+function add_tools_bin_to_path() {
+  export PATH=""${ECOSYSTEM_PATHS_SHELL_LIB_HOME}/tools/bin/all":$PATH"
+  export PATH=""${ECOSYSTEM_PATHS_SHELL_LIB_HOME}/tools/bin/${OS_NAME}":$PATH"
+}
+add_tools_bin_to_path
 
 if [[ $AUTO_BOOTSTRAP == true ]]; then
   bootstrap
