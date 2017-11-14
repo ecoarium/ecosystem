@@ -60,6 +60,12 @@ if ENV['_'].end_with?('cfndsl')
   require 'opt/cfndsl'
 end
 
+unless $WORKSPACE_SETTINGS[:paths][:project][:deploy][:cfndsl].nil?
+  require 'cfndsl-ext/reporter'
+
+  CfndslExt::Reporter.load_resources_report
+end
+
 if ENV['_'].end_with?('pry') or ENV['_'].end_with?('irb')
   require 'vagrant/reporter'
 

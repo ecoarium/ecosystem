@@ -93,7 +93,7 @@ module CfndslExt
         events = @stack.events.collect.to_a.reverse
 
         events[off_set..-1].each{|event|
-          puts "--)event_id: #{event.event_id}, logical_resource_id: #{event.logical_resource_id}, physical_resource_id: #{event.physical_resource_id}, resource_status: #{event.resource_status}, resource_status_reason: #{event.resource_status_reason}, resource_type: #{event.resource_type}"
+          puts "==> event_id: #{event.event_id}, logical_resource_id: #{event.logical_resource_id}, physical_resource_id: #{event.physical_resource_id}, resource_status: #{event.resource_status}, resource_status_reason: #{event.resource_status_reason}, resource_type: #{event.resource_type}"
         }
 
         events.size
@@ -115,7 +115,7 @@ module CfndslExt
         end
       end
 
-      def outputs
+      def resources
         query_stack = Aws::CloudFormation::Stack.new(
           @stack_name,
           {
@@ -124,7 +124,29 @@ module CfndslExt
             secret_access_key: secret_access_key
           }
         )
-        query_stack.resource_summaries.collect().to_a
+
+        resources = {}
+
+        query_stack.resource_summaries.each{|resource_summary|
+
+          resource = resources
+          resource_type_parts = resource_summary.resource_type.snakecase.split(/::/)
+          last_resource_type_part = resource_type_parts.pop
+
+          resource_type_parts.each{|resource_type_part|
+            resource[resource_type_part] = {} if resource[resource_type_part].nil?
+            resource = resource[resource_type_part]
+          }
+
+          resource[last_resource_type_part] = [] if resource[last_resource_type_part].nil?
+
+          resource[last_resource_type_part].push({
+            logical_resource_id: resource_summary.logical_resource_id,
+            physical_resource_id: resource_summary.physical_resource_id
+          })
+        }
+
+        resources
       end
 
       def exists?
