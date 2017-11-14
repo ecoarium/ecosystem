@@ -75,8 +75,6 @@ function bootstrap() {
   assert_not_already_loaded
   function__execute_if_exists 'before_bootstrap'
 
-  functions__export_functions
-
   require_relative 'baseline'
 
   local auto_load_bash_source_file_path=''
@@ -86,7 +84,6 @@ function bootstrap() {
 
   bootstrap_workspace_settings
 
-  functions__export_functions
   rename_terminal
   complete_load
   function__execute_if_exists 'after_bootstrap'
