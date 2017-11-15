@@ -24,6 +24,7 @@ module VagrantPlugins
 
         report = {}
         with_target_vms(argv) do |machine|
+          debug {"building report for machine: #{machine.name}"}
 
           action = ::Vagrant::Action::Builder.new.tap do |b|
             b.use ::Vagrant::Action::Builtin::EnvSet, berkshelf: Berkshelf::Vagrant::Env.new
@@ -35,6 +36,7 @@ module VagrantPlugins
 
           machine.action_raw('berkshelf_install', action)
 
+          break if Vagrant::Project.project_environment.nil? or Vagrant::Project.project_environment.machines.nil? or Vagrant::Project.project_environment.machines.empty?
           project_machine = Vagrant::Project.project_environment.machines[machine.name]
 
           box = nil
