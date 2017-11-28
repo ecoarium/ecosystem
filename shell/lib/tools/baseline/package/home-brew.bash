@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function baseline__home_brew__up_to_date_q(){
-  if [[ ! $(which brew) ]] ; then
+  if [[ ! -e /usr/local/bin/brew ]] ; then
     set_baseline_up_to_date_override
 
     register_baseline_installer_function baseline__home_brew__install_home_brew
