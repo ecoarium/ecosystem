@@ -49,7 +49,7 @@ module Vagrant
 
             aws.ami = ami
             aws.subnet_id = subnet_id
-            aws.security_groups = Helper.convert_security_group_names_to_ids(security_groups, subnet_id)
+            aws.security_groups = Helper.convert_security_group_names_to_ids(security_groups, subnet_id) unless subnet_id.nil?
             aws.instance_type = instance_type
             aws.tags = tags
           end
