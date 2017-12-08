@@ -42,7 +42,7 @@ $WORKSPACE_SETTINGS[:test_types].compact!
 
 workspace_settings = Hash.new { |hash,key| hash[key] = Hash.new(&hash.default_proc) }
 ENV.each{|name,value|
-	if name.start_with?('PATHS_') or name.start_with?('PROJECT_') or name.start_with?('ECOSYSTEM_') or name.start_with?('VAGRANT_') or name.start_with?('PACKER_') or name.start_with?('ORGANIZATION_') or name.start_with?('COMPANY_') or name.start_with?('GIT_')
+	if name.start_with?('PATHS_') or name.start_with?('PROJECT_') or name.start_with?('ECOSYSTEM_') or name.start_with?('VAGRANT_') or name.start_with?('PACKER_') or name.start_with?('ORGANIZATION_') or name.start_with?('COMPANY_') or name.start_with?('GIT_') or name.start_with?('AWS_')
 		eval "workspace_settings[:#{name.downcase.gsub(/_/, '][:')}] = value"
 		# puts "workspace_settings[:#{name.downcase.gsub(/_/, '][:')}] = '#{value}'"
 	end
