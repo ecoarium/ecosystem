@@ -25,14 +25,42 @@ module Vagrant
             @secret_access_key = Helper.get_aws_credential['aws_secret_access_key']
             @region = 'us-east-1'
             @security_groups = ['default', 'ssh']
-            @ssh_username = 'ec2-user'
+            @ssh_username = 'vagrant'
 
             @instance_type = 'm3.medium'
             @tags = {}
           end
 
+          def box_from_packer(packer_box_name, packer_box_version)
+            super
+
+            region_symbol = $WORKSPACE_SETTINGS[:aws][:region].to_sym
+
+            ami $WORKSPACE_SETTINGS[:packer][:boxes][:aws][packer_box_name.to_sym][packer_box_version.to_sym][:ami][region_symbol]
+
+            configure_dummy_box
+          end
+
+          def box_from_nexus(artifact_name, artifact_version)
+            super
+
+            region_symbol = $WORKSPACE_SETTINGS[:aws][:region].to_sym
+
+            ami $WORKSPACE_SETTINGS[:packer][:boxes][:aws][packer_box_name.to_sym][packer_box_version.to_sym][:ami][region_symbol]
+
+            configure_dummy_box
+          end
+
+          def configure_dummy_box
+            box 'dummy'
+            box_url File.expand_path("../../../../../boxes/aws/dummy.box", File.dirname(__FILE__))
+          end
+
           def configure_this(vagrant_machine, aws)
-            vagrant_machine.ssh.username = ssh_username
+            unless ssh_username == 'vagrant'
+              vagrant_machine.ssh.username = ssh_username
+              vagrant_machine.ssh.private_key_path = Vagrant::Project::Provider::Amazon::Helper.ssh_key_file_path(vagrant_machine)
+            end
 
             aws.access_key_id = access_key_id
             aws.secret_access_key = secret_access_key
@@ -52,6 +80,7 @@ module Vagrant
             aws.security_groups = Helper.convert_security_group_names_to_ids(security_groups, subnet_id) unless subnet_id.nil?
             aws.instance_type = instance_type
             aws.tags = tags
+            configure_dummy_box
           end
 
         end

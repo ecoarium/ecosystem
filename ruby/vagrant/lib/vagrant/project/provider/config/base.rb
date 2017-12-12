@@ -17,8 +17,16 @@ module Vagrant
 
           attr_config :vagrant_machine
 
+          def box_from_packer(packer_box_name, packer_box_version)
+            box_info = $WORKSPACE_SETTINGS[:packer][:boxes][provider_symbol][packer_box_name.to_sym][packer_box_version.to_sym]
+
+            box "#{packer_box_name}-#{packer_box_version}"
+            box_url box_info[:url]
+            os_name box_info[:os_name]
+            os_version box_info[:os_version]
+          end
+
           def box_from_nexus(artifact_name, artifact_version)
-            return if provider_symbol == :aws
             box_name = "#{artifact_name}-#{artifact_version}"
             file_name = "#{box_name}.box"
 

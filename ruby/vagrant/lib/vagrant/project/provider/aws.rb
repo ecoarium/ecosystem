@@ -20,10 +20,6 @@ module Vagrant
         def set_defaults(&block)
           super
 
-          provider_overrides{|override|
-            override.ssh.private_key_path = Vagrant::Project::Provider::Amazon::Helper.ssh_key_file_path(vagrant_machine)
-          }
-
           if vagrant_machine.vm.guest == :windows
             vagrant_machine.vm.communicator = 'winrm'
             vagrant_machine.winrm.username = 'Administrator'
