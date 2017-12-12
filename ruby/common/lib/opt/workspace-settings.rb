@@ -73,17 +73,5 @@ $WORKSPACE_SETTINGS.deep_merge!({
 			password: ENV['NEXUS_PASSWORD']
 		}
 	},
-	build_artifact_directory_name: '.build',
-	paths: {
-		project: {
-			deploy: {
-				runtime_share: {
-					context: {
-						home: "#{$WORKSPACE_SETTINGS[:paths][:project][:deploy][:home]}/runtime-share/#{$WORKSPACE_SETTINGS[:vagrant][:context]}"
-					}
-				}
-			}
-		}
-	},
-  iserver_branch: ENV['ISERVER_BRANCH']
+	build_artifact_directory_name: '.build'
 })
