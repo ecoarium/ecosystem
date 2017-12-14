@@ -34,9 +34,9 @@ module Vagrant
               $WORKSPACE_SETTINGS[:nexus][:direct_base_path],
               $WORKSPACE_SETTINGS[:nexus][:repos][:file],
               'com/vagrantup/basebox',
-              artifact_name.gsub(/-/, '/'),
-              provider_symbol.to_s,
               artifact_name,
+              provider_symbol.to_s,
+              artifact_name.gsub(/\//, '-'),
               artifact_version,
               file_name
             ].join('/')
