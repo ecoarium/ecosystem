@@ -7,6 +7,7 @@ module Vagrant
       module Config
         class Base
           include Vagrant::Project::Mixins::Configurable
+          include LoggingHelper::LogToTerminal
 
           attr_config :synced_folders, class: Vagrant::Project::Provider::Config::SyncedFolder, is_array: true
           attr_config :provider_symbol, :os_name, :os_version
@@ -18,16 +19,18 @@ module Vagrant
           attr_config :vagrant_machine
 
           def box_from_packer(packer_box_name, packer_box_version)
+            debug {"all boxes:\n#{$WORKSPACE_SETTINGS[:packer][:boxes].pretty_inspect}"}
             box_info = $WORKSPACE_SETTINGS[:packer][:boxes][provider_symbol][packer_box_name.to_sym][packer_box_version.to_sym]
+            debug {"box_info:\n#{box_info.pretty_inspect}"}
 
-            box "#{packer_box_name}-#{packer_box_version}"
+            box "#{packer_box_name}-#{packer_box_version}".gsub(/\//, '-')
             box_url box_info[:url]
             os_name box_info[:os_name]
             os_version box_info[:os_version]
           end
 
           def box_from_nexus(artifact_name, artifact_version)
-            box_name = "#{artifact_name}-#{artifact_version}"
+            box_name = "#{artifact_name}-#{artifact_version}".gsub(/\//, '-')
             file_name = "#{box_name}.box"
 
             box_url [
