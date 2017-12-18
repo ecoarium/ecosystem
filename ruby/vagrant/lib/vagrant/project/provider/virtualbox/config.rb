@@ -7,16 +7,16 @@ module Vagrant
     module Provider
       module VirtualBox
         class Configuration < Vagrant::Project::Provider::Config::Base
-          
+
           attr_config :network, class: Vagrant::Project::Provider::VirtualBox::Config::Network
           attr_config :disk, class: Vagrant::Project::Provider::VirtualBox::Config::Disk, is_array: true
-          
+
           attr_config :memory, :cpus, :gui, :sync_vagrant_folder
 
           def initialize
             @gui = false
             @sync_vagrant_folder = true
-            
+
             @box = 'dummy'
             @box_url = File.expand_path('../../../../../boxes/virtualbox/dummy.box', File.dirname(__FILE__))
           end
@@ -31,6 +31,8 @@ module Vagrant
             end
 
             vbox.gui = gui
+
+            vbox.linked_clone = true
 
             unless sync_vagrant_folder
               synced_folders{
