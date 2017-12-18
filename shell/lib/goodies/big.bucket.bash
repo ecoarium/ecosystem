@@ -52,8 +52,12 @@ cookbook_readme [cookbook_name] [cookbook_version]"
   fi
 
   if [[ ! -e "${cookbook_dir_path}" ]]; then
-    local lock_version_line="$(grep -A0 $cookbook_name ${PATHS_PROJECT_DEPLOY_VAGRANT_CONTEXT_HOME}/*.lock | egrep "$cookbook_name\s+\(\d")"
-    local cookbook_version="$(expr "$lock_version_line" : '.*(\(.*\)).*')"
+    local cookbook_version="$(egrep "$cookbook_name\s+\(\d" ${PATHS_PROJECT_DEPLOY_VAGRANT_CONTEXT_HOME}/*.lock | awk '{print $2}')"
+    local cookbook_dir_path="${berkshelf_cookbook_path}/${cookbook_name}-${cookbook_version}"
+  fi
+
+  if [[ ! -e "${cookbook_dir_path}" ]]; then
+    local cookbook_version="$(grep -A2 "$cookbook_name$" ${PATHS_PROJECT_DEPLOY_VAGRANT_CONTEXT_HOME}/*.lock | grep revision | awk '{print $2}')"
     local cookbook_dir_path="${berkshelf_cookbook_path}/${cookbook_name}-${cookbook_version}"
   fi
 
@@ -76,7 +80,7 @@ cookbook_readme [cookbook_name] [cookbook_version]"
     fail "could not find a README.md for cookbook ${cookbook_name} version ${cookbook_version}"
   fi
 
-  subl "${cookbook_readme_path}"
+  atom "${cookbook_readme_path}"
 }
 
 function open_cookbook() {
