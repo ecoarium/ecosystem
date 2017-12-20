@@ -136,6 +136,10 @@ function search_gem() {
   eval "search ${*} $(gem_path ${gem_name})"
 }
 
+function search_ecosystem() {
+  eval "search ${*} ${ECOSYSTEM_PATHS_HOME}"
+}
+
 function wear_hat() {
   export HATS=$1:$HATS
 }
