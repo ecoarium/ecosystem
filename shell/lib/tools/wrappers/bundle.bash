@@ -9,20 +9,19 @@ function bundle(){
 
   _ensure_bundler_installed
 
+  case $OS_NAME in
+    Darwin)
+      _bundle config build.nokogiri --with-xml2-include=/usr/local/Cellar/libxml2/2.9.4/include/libxml2/libxml --with-xml2-lib=/usr/local/Cellar/libxml2/2.9.4/lib --with-xslt-dir=/usr/local/Cellar/libxslt/1.1.28_1
+      ;;
+    *)
+      _bundle config build.nokogiri --use-system-libraries
+      ;;
+  esac
+
   local bundle_command=$1
 
   if [[ $bundle_command == "install" || $bundle_command == "package" || $bundle_command == "update" ]]; then
     if [[ "$BUNDLE_GEMFILE" -nt "$PATHS_PROJECT_BUNDLE_INSTALL_FLAG_FILE" || "$ECOSYSTEM_BUNDLE_GEMFILE" -nt "$PATHS_PROJECT_BUNDLE_INSTALL_FLAG_FILE" ]]; then
-
-      case $OS_NAME in
-        Darwin)
-          _bundle config build.nokogiri --with-xml2-include=/usr/local/Cellar/libxml2/2.9.4/include/libxml2/libxml --with-xml2-lib=/usr/local/Cellar/libxml2/2.9.4/lib --with-xslt-dir=/usr/local/Cellar/libxslt/1.1.28_1
-          ;;
-        *)
-          _bundle config build.nokogiri --use-system-libraries
-          ;;
-      esac
-
       if [[ $bundle_command == "update" ]]; then
         _bundle update
       elif [[ "$BUNDLE_GEMFILE" -nt "${BUNDLE_GEMFILE}.lock" || "$ECOSYSTEM_BUNDLE_GEMFILE" -nt "${BUNDLE_GEMFILE}.lock" ]]; then
@@ -32,15 +31,14 @@ function bundle(){
       fi
 
       touch $PATHS_PROJECT_BUNDLE_INSTALL_FLAG_FILE
-      return 0
-    else
-      return 0
     fi
   fi
 
-  eval "$RUBY_BIN $BUNDLER_BIN ${*}"
-  fail_if "Failed to execute: ${*}"
-  return 0
+  if [[ $bundle_command == "install" ]]; then
+    return 0
+  fi
+
+  _bundle $*
 }
 
 function _bundle(){
@@ -48,7 +46,7 @@ function _bundle(){
 
   debug "exec [RUBYOPT='' BUNDLE_BIN_PATH='' $RUBY_BIN $BUNDLER_BIN ${*}] in [$PATHS_PROJECT_WORKSPACE_SETTINGS_BUNDLE_HOME]"
 
-  eval "RUBYOPT='' BUNDLE_BIN_PATH='' $RUBY_BIN $BUNDLER_BIN ${*}" 1>&2
+  eval "RUBYOPT='' BUNDLE_BIN_PATH='' $RUBY_BIN $BUNDLER_BIN ${*} --verbose" 1>&2
   local bundle_exit_code=$?
 
   cd $OLDPWD
