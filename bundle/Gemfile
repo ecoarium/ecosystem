@@ -38,7 +38,7 @@ gem 'rspec'
 gem 'selenium-webdriver'
 
 gem 'cfndsl'
-gem 'cfn2dsl'
+gem 'cfn2dsl', '= 0.1.5'
 
 #################################### VAGRANT ############################################
 #                                Vagrant Plugins
