@@ -5,6 +5,7 @@ module Vagrant
   module Project
     module Mixins
       module DataBags
+        include LoggingHelper::LogToTerminal
 
       	def get_data_bag(bag_name, path=$WORKSPACE_SETTINGS[:paths][:project][:deploy][:chef][:data][:bags][:home])
           data_bag = {}
@@ -43,6 +44,7 @@ module Vagrant
           overriden_data_bag_files = Dir.glob("#{local_env_overriden_data_bags_path}/**/*")
           overrides_data_bags_uptodate = FileUtils.uptodate?(local_env_data_bags_path, overriden_data_bag_files)
 
+          debug {"local_env_data_bags_uptodate?->(real_data_bags_uptodate:#{real_data_bags_uptodate.inspect} and overrides_data_bags_uptodate:#{overrides_data_bags_uptodate.inspect})"}
           (real_data_bags_uptodate and overrides_data_bags_uptodate)
         end
 
