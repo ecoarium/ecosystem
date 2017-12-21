@@ -136,6 +136,14 @@ function search_gem() {
   eval "search ${*} $(gem_path ${gem_name})"
 }
 
+function open_ecosystem() {
+  open $ECOSYSTEM_PATHS_HOME
+}
+
+function atom_ecosystem() {
+  atom $ECOSYSTEM_PATHS_HOME
+}
+
 function search_ecosystem() {
   eval "search ${*} ${ECOSYSTEM_PATHS_HOME}"
 }
