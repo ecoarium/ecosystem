@@ -14,6 +14,14 @@ class Chef
         @data_bags_path
       end
 
+      def local_env_data_bags_path
+        "#{$WORKSPACE_SETTINGS[:paths][:project][:deploy][:vagrant][:state]}/data_bags"
+      end
+
+      def local_env_overriden_data_bags_path
+        "#{$WORKSPACE_SETTINGS[:paths][:project][:deploy][:vagrant][:context][:home]}/data_bag_overrides"
+      end
+
       def data_bags
         data_bags = {}
 
@@ -49,7 +57,7 @@ class Chef
         data_bag_item = JSON.parse(File.read(file), symbolize_names: true)
 
         if encrypted?(data_bag_item)
-          
+
           shell_result = shell_command!(
             "knife solo data bag show #{data_bag_name} #{item_name} -s '' -F json -c #{$WORKSPACE_SETTINGS[:ecosystem][:chef][:home]}/knife.rb",
             live_stream: nil,
