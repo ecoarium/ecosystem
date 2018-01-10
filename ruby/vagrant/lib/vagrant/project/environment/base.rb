@@ -71,6 +71,9 @@ end
               def vagrant_file_path
                 @vagrant_file_path
               end
+              def machine_type
+                @machine_type
+              end
               def name
                 @name
               end
@@ -87,6 +90,7 @@ end
             data_dir = File.expand_path(".vagrant/machines/#{args.first}/#{provider_name}", File.dirname(vagrant_file_path))
             vagrant_machine.instance_variable_set(:@root_dir, root_dir)
             vagrant_machine.instance_variable_set(:@vagrant_file_path, vagrant_file_path)
+            vagrant_machine.instance_variable_set(:@machine_type, method_symbol)
             vagrant_machine.instance_variable_set(:@name, args.first)
             vagrant_machine.instance_variable_set(:@provider_name, provider_name)
             vagrant_machine.instance_variable_set(:@data_dir, data_dir)

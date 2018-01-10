@@ -1,5 +1,6 @@
 require 'berkshelf/smart'
 require 'logging-helper'
+require 'facets/string'
 require 'pp'
 
 module Berkshelf
@@ -32,10 +33,12 @@ module Berkshelf
 
           Berkshelf::Vagrant::Config.instance = env[:machine].config.berkshelf
 
-          debug { env[:machine].config.berkshelf.pretty_inspect }
+          machine = ::Vagrant::Project.project_environment.machines[env[:machine].name]
 
-          env[:berkshelf].berksfile = Berkshelf::Berksfile.from_file(env[:machine].config.berkshelf.berksfile_path, lock_file_path: File.expand_path("Berksfile.#{env[:machine].name}.lock"))
-          
+          machine_type = machine.class.name.split('::').last.snakecase.to_sym
+
+          env[:berkshelf].berksfile = Berkshelf::Berksfile.from_file(env[:machine].config.berkshelf.berksfile_path, lock_file_path: File.expand_path("Berksfile.#{env[:machine].name}.lock"), machine_type: machine_type)
+
           env[:berkshelf].ui.info "using berksfile: #{env[:machine].config.berkshelf.berksfile_path}"
 
           berks_flag_file_path = File.join(['.vagrant', 'machines', env[:machine].name.to_s, 'berkshelf.flag'].compact)

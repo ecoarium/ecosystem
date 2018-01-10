@@ -7,19 +7,38 @@ module Berkshelf
         raise BerksfileNotFound.new(file) unless File.exist?(file)
 
         begin
+          machine_type = nil
+          if options[:machine_type]
+            machine_type = options.delete(:machine_type)
+          end
+
           shim_file_path = File.expand_path('../../berks_shim.rb', File.dirname(__FILE__))
           berksfile = new(shim_file_path, options)
           berksfile.filepath = file
           berksfile.include_berks_file(shim_file_path)
           berksfile.lockfile = Lockfile.from_berksfile(berksfile, options)
 
-          prepositioned_berksfiles.each{|prepositioned_berksfile|
-            berksfile.load_berks_file(prepositioned_berksfile)
-          }
+          unless prepositioned_berksfiles[:environment].nil?
+            prepositioned_berksfiles[:environment].each{|prepositioned_berksfile|
+              berksfile.load_berks_file(prepositioned_berksfile)
+            }
+          end
+          unless prepositioned_berksfiles[machine_type].nil?
+            prepositioned_berksfiles[machine_type].each{|prepositioned_berksfile|
+              berksfile.load_berks_file(prepositioned_berksfile)
+            }
+          end
 
-          preposition_berks_blocks.each{|block|
-            berksfile.instance_eval &block
-          }
+          unless preposition_berks_blocks[:environment].nil?
+            preposition_berks_blocks[:environment].each{|block|
+              berksfile.instance_eval &block
+            }
+          end
+          unless preposition_berks_blocks[machine_type].nil?
+            preposition_berks_blocks[machine_type].each{|block|
+              berksfile.instance_eval &block
+            }
+          end
 
           berksfile.load_berks_file(file)
 
@@ -29,27 +48,30 @@ module Berkshelf
         end
       end
 
-      def preposition_berks_block(&block)
-        @@preposition_berks_blocks.push block
+      def preposition_berks_block(machine_type, &block)
+        @@preposition_berks_blocks[machine_type] = [] if @@preposition_berks_blocks[machine_type].nil?
+        @@preposition_berks_blocks[machine_type].push block
       end
 
-      def preposition_berksfile(file)
-        @@prepositioned_berksfiles.push file
+      def preposition_berksfile(machine_type, file)
+        @@prepositioned_berksfiles[machine_type] = [] if @@prepositioned_berksfiles[machine_type].nil?
+        @@prepositioned_berksfiles[machine_type].push file
       end
 
       private
 
-      @@preposition_berks_blocks = []
+      @@preposition_berks_blocks = {}
       def preposition_berks_blocks
         @@preposition_berks_blocks
       end
 
-      @@prepositioned_berksfiles = []
+      @@prepositioned_berksfiles = {}
       def prepositioned_berksfiles
         @@prepositioned_berksfiles
       end
     end
 
+    extend LoggingHelper::LogToTerminal
     include LoggingHelper::LogToTerminal
 
     def filepath=(value)
