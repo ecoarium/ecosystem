@@ -4,6 +4,15 @@ require 'yaml'
 
 class Object
   class << self
+
+    def redef_const(const, value)
+      suppress_warnings {
+        const = const.to_s
+        send(:remove_const, const) if self.class.const_defined?(const)
+        const_set(const, value)
+      }
+    end
+
     def list_subclasses
       subclasses = [superclass]
       subclasses.concat superclass.list_subclasses unless [Object, Kernel, BasicObject].include? superclass

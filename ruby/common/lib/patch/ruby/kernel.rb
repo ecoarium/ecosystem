@@ -1,6 +1,14 @@
 
 module Kernel
 
+	def suppress_warnings
+    original_verbosity = $VERBOSE
+    $VERBOSE = nil
+    result = yield
+    $VERBOSE = original_verbosity
+    return result
+  end
+
 	alias_method :original_require_relative, :require_relative
 	def require_relative(partial_file_path)
 		if RbConfig::CONFIG['host_os'].include?('mingw32')
