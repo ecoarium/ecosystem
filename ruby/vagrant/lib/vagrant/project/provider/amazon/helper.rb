@@ -81,18 +81,17 @@ module Vagrant
               if File.exist?(vagrant_machine.id_file)
                 id = IO.read(vagrant_machine.id_file)
 
-                begin
-                  @instance[vagrant_machine.name] = aws_client.servers.get(id)
-                rescue  NoMethodError => err
+                @instance[vagrant_machine.name] = aws_client.servers.get(id)
+
+                if @instance[vagrant_machine.name].nil?
                   File.delete(vagrant_machine.id_file)
                   raise %/
-                  **************************************************************************************
-                  The id provided does not exist in AWS.  Removing vagrant id file:
-                  #{vagrant_machine.id_file}
-
-                  NoMethodError: #{err}
-                  **************************************************************************************
-                  /
+**************************************************************************************
+the id #{id} does not exist
+deleting vagrant id file:
+#{vagrant_machine.id_file}
+**************************************************************************************
+/
                 end
               end
 
