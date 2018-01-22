@@ -49,7 +49,7 @@ class Replace
 
   def initialize(opts={})
     opts.each{|opt_name, opt_value|
-      instance_variable_set("@#{opt_name}".to_sym, opt_value) 
+      instance_variable_set("@#{opt_name}".to_sym, opt_value)
     }
 
     @exclusions = [] if @exclusions.nil?
@@ -133,7 +133,7 @@ replacing token #{token} with value #{value} in paths:"
 
             next if dry_run
 
-            FileUtils.move(source_path, target_path)  
+            FileUtils.move(source_path, target_path)
           rescue Exception => e
             fail_with_message %/
   error moving file:
@@ -150,7 +150,7 @@ replacing token #{token} with value #{value} in paths:"
   end
 
   def get_matching_file_list(location, token, value)
-    grep_command_line = "GLOBIGNORE=.:..; egrep -Irn #{token} . 2>/dev/null | grep -v '\\.git\/'"
+    grep_command_line = "GLOBIGNORE=.:..; egrep -Irn \"#{token}\" . 2>/dev/null | grep -v '\\.git\/'"
 
     grep_output = nil
     Dir.chdir(location) do
@@ -170,7 +170,7 @@ replacing token #{token} with value #{value} in files:"
 
     grep_output.split("\n").collect{|grep_line|
       path = File.expand_path(grep_line.split(':')[0], location)
-      
+
       keep = !exclude?(path)
 
       unless seen.include?(path)
@@ -197,7 +197,7 @@ replacing token #{token} with value #{value} in files:"
     exp = Regexp.new(regex)
 
     temp_file = Tempfile.new(File.basename(file_path))
-    
+
     File.readlines(file_path).each do |line|
       #debug "#{line}.match(#{exp.inspect})"
       if line.match(exp)
@@ -233,7 +233,7 @@ to:
       token:  #{token}
       value:  #{value}
       file:   #{file}
-      
+
       #{e.message}
       #{e.backtrace.join("\n        ")}
 /
@@ -328,7 +328,7 @@ class CommandOptions
     :long  => "--just-files",
     :description => "This option limits the search and replace to file contents."
 
-  option :just_path_names, 
+  option :just_path_names,
     :short => "-p",
     :long  => "--just-paths",
     :description => "This option limits the search and replace to path names."
@@ -338,7 +338,7 @@ class CommandOptions
     :long  => "--dry-run",
     :description => "Prints what would be changed if run without this option."
 
-  option :debug_on, 
+  option :debug_on,
     :short => "-d",
     :long  => "--debug",
     :description => "debug logging"
@@ -365,4 +365,3 @@ else
     Replace.new(cli.config).run
   }
 end
-
