@@ -4,19 +4,6 @@ require 'virtualbox'
 
 include TerminalHelper::AskMixin
 
-$WORKSPACE_SETTINGS[:machine_report].each{|machine_name, machine_info|
-
-  desc "show ip address for #{machine_name}"
-  task :"show_ip_#{machine_name}" do
-    ip_addresses = machine_info[:networks].collect{|network| network[1][:ip]}.compact
-    puts "
-    #{machine_name} ip address(es):
-      * #{ip_addresses.join("\n      * ")}
-"
-  end
-
-}
-
 def get_list_of_vms
   result = shell_command! 'VBoxManage list vms', live_stream: nil
   vms = Hash[result.stdout.split("\n").map{|line|

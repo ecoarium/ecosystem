@@ -62,3 +62,19 @@ task :move_artifact => [:package] do
   FileUtils.rm_f(host_artifact_path) if File.exist?(host_artifact_path)
   FileUtils.cp(artifact_info[:artifact_file_path], host_artifact_path)
 end
+
+desc "show ip addresses for all machines"
+task :"show_ips" do
+  puts ""
+  $WORKSPACE_SETTINGS[:machine_report].each{|machine_name, machine_info|
+    puts "#{machine_name}: #{machine_info[:provider][:network][:ip_address]}"
+  }
+end
+
+$WORKSPACE_SETTINGS[:machine_report].each{|machine_name, machine_info|
+  desc "show ip address for #{machine_name}"
+  task :"show_ip_#{machine_name}" do
+    puts ""
+    puts "#{machine_name}: #{machine_info[:provider][:network][:ip_address]}"
+  end
+}

@@ -18,6 +18,7 @@ module Vagrant
           attr_config :network, class: Vagrant::Project::Provider::Amazon::Config::Network
 
           def initialize
+            @network = Vagrant::Project::Provider::Amazon::Config::Network.new
             @box = 'dummy'
             @box_url = File.expand_path("../../../../../boxes/aws/dummy.box", File.dirname(__FILE__))
 
