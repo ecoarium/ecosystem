@@ -10,13 +10,13 @@ class Jenkins
     @@data_bag_reader = nil
     def data_bag_reader
       return @@data_bag_reader unless @@data_bag_reader.nil?
-      @@data_bag_reader = Chef::DataBag::Reader.new("#{$WORKSPACE_SETTINGS[:ecosystem][:paths][:ruby][:home]}/smithers")
+      @@data_bag_reader = Chef::DataBag::Reader.new($WORKSPACE_SETTINGS[:paths][:project][:deploy][:chef][:data][:bags][:home])
     end
 
     @@credentials = nil
     def credentials
       return @@credentials unless @@credentials.nil?
-      @@credentials = data_bag_reader.data_bag_item('resources', 'user')
+      @@credentials = data_bag_reader.data_bag_item('credentials', 'jenkins')
     end
 
     def url
