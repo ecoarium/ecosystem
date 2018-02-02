@@ -14,7 +14,7 @@ module Resource
 
   def resource(name)
     possible_resource_locations = [
-      "#{$WORKSPACE_SETTINGS[:paths][:project][:workspace][:settings][:ruby][:home]}/#{gem_name}/resources"
+      "#{$WORKSPACE_SETTINGS[:paths][:project][:workspace][:settings][:ruby][:home]}/#{gem_name}/resources",
       "#{$WORKSPACE_SETTINGS[:ecosystem][:paths][:ruby][:home]}/#{gem_name}/resources"
     ]
 
